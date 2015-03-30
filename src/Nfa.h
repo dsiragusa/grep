@@ -22,7 +22,6 @@ enum card_t {KLEENE_STAR, OPTION, PLUS};
 class Nfa {
 	private:
 	Nfa(const Nfa *);
-	//map<int, map<char,list<int> > > transitions;
 	unordered_set<State *> states;
 	State *final;
 	State *initial;

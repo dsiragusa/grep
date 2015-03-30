@@ -17,8 +17,11 @@ Nfa::Nfa(char symbol) {
 
 Nfa::Nfa(const Nfa *toCopy) {
 	map<State *, State *> oldToNewStates;
+
 	for (auto& state : toCopy->states) {
-		oldToNewStates.emplace(state, new State());
+		State *newState = new State();
+		states.insert(newState);
+		oldToNewStates.emplace(state, newState);
 	}
 
 	auto stateToCopy = toCopy->states.begin();
@@ -30,6 +33,7 @@ Nfa::Nfa(const Nfa *toCopy) {
 		stateToCopy++;
 		myState++;
 	}
+
 	initial = oldToNewStates.find(toCopy->initial)->second;
 	final = oldToNewStates.find(toCopy->final)->second;
 }
@@ -65,34 +69,44 @@ void Nfa::apply_cardinality(enum card_t type) {
 	states.insert(newInitial);
 	states.insert(newFinal);
 
-	//create e-transitions to initial and new_final
-	//list<State *> eps_edges;
+	final->setEpsTransition(newFinal);
+	newInitial->setEpsTransition(initial);
 
-	(*states.find(final))->setEpsTransition(newFinal);
-	switch (type) {
-		case PLUS:	//final -> newFinal, initial | newInitial -> initial
-		case KLEENE_STAR: //final -> newFinal, initial | newInitial -> initial, newFinal
-			final->setEpsTransition(initial);
-			break;
-		case OPTION:	//final -> newFinal
-			//add it to final
-			eps_edges.push_back(initial);
-			break;
+	if (type != OPTION)
+		final->setEpsTransition(initial);
+
+	if (type != PLUS)
+		newInitial->setEpsTransition(newFinal);
+
+	initial = newInitial;
+	final = newFinal;
+}
+
+void Nfa::apply_cardinality(int min, int max) {
+	Nfa *orig = new Nfa(this);
+	State *newFinal = new State();
+
+	int i;
+	for (i = 1; i < min; i++) {
+		Nfa *toAppend = new Nfa(orig);
+		concatenate(toAppend);
 	}
 
-	//add them to the new initial state
-	map<char, list<int> > new_init_trans;
-	if (type == PLUS) {
-		eps_edges.remove(new_final);
+	list<State *> abortStates;
+	abortStates.push_back(final);
+
+	for (; i < max; i++) {
+		Nfa *toAppend = new Nfa(orig);
+		concatenate(toAppend);
+		abortStates.push_back(final);
 	}
-	new_init_trans.emplace(EPS, eps_edges);
 
-	//add new states to nfa
-	transitions.emplace(new_initial, new_init_trans);
-	transitions.emplace(new_final, map<char, list<int> >());
+	for (auto& abort : abortStates) {
+		(*states.find(abort))->setEpsTransition(newFinal);
+	}
 
-	initial = new_initial;
-	final = new_final;
+	states.insert(newFinal);
+	final = newFinal;
 }
 
 int Nfa::rec_evaluate(string in, State *state) {
@@ -152,12 +166,28 @@ int main () {
 	b->evaluate("b");
 	b->evaluate("a");
 
-	a->unify(b);
-	//a->concatenate(b);
+	//a->unify(b);
+	a->concatenate(b);
 	a->print();
 	a->evaluate("a");
 	a->evaluate("b");
 	a->evaluate("ab");
+
+
+	a->apply_cardinality(3, 5);
+	a->print();
+	a->evaluate("ab");
+	a->evaluate("abab");
+	a->evaluate("ababab");
+	a->evaluate("abababab");
+	a->evaluate("ababababab");
+	a->evaluate("abababababab");
+
+	Nfa c = Nfa('b');
+	a->unify(&c);
+	a->print();
+	a->evaluate("b");
+	a->evaluate("ababababab");
 
 }
 
