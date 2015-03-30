@@ -17,6 +17,9 @@ using namespace std;
 #define ACCEPT 1
 #define REJECT 0
 
+#define UNBOUNDED -1
+#define SIMPLE_COUNT -2
+
 enum card_t {KLEENE_STAR, OPTION, PLUS};
 
 class Nfa {

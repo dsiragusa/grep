@@ -66,7 +66,7 @@ void State::print() {
 		char sy = tr.first;
 		cout << ((sy == EPS) ? '@' : sy) << "(";
 		for (auto& next : tr.second) {
-			cout << next->getId();
+			cout << next->getId() << " ";
 		}
 		cout << ") ";
 	}

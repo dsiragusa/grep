@@ -92,21 +92,32 @@ void Nfa::apply_cardinality(int min, int max) {
 		concatenate(toAppend);
 	}
 
-	list<State *> abortStates;
-	abortStates.push_back(final);
+	switch (max) {
+		case SIMPLE_COUNT:
+			break;	//do_nothing
+		case UNBOUNDED: {
+			Nfa *toAppend = new Nfa(orig);
+			toAppend->apply_cardinality(KLEENE_STAR);
+			concatenate(toAppend);
+			break;
+		}
+		default: {
+			list<State *> abortStates;
+			abortStates.push_back(final);
 
-	for (; i < max; i++) {
-		Nfa *toAppend = new Nfa(orig);
-		concatenate(toAppend);
-		abortStates.push_back(final);
+			for (; i < max; i++) {
+				Nfa *toAppend = new Nfa(orig);
+				concatenate(toAppend);
+				abortStates.push_back(final);
+			}
+
+			for (auto& abort : abortStates) {
+				(*states.find(abort))->setEpsTransition(newFinal);
+			}
+			states.insert(newFinal);
+			final = newFinal;
+		}
 	}
-
-	for (auto& abort : abortStates) {
-		(*states.find(abort))->setEpsTransition(newFinal);
-	}
-
-	states.insert(newFinal);
-	final = newFinal;
 }
 
 int Nfa::rec_evaluate(string in, State *state) {
@@ -183,11 +194,6 @@ int main () {
 	a->evaluate("ababababab");
 	a->evaluate("abababababab");
 
-	Nfa c = Nfa('b');
-	a->unify(&c);
-	a->print();
-	a->evaluate("b");
-	a->evaluate("ababababab");
 
 }
 
