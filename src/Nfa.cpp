@@ -127,6 +127,9 @@ void Nfa::eliminate_eps() {
 		_stateEPS = getStatesWithEpSTransition();
 		isEmpty = _stateEPS.empty();
 	}
+	if(isAccessible(final))
+		finals.insert(final);
+	cout<<"Size: "<<finals.size()<<"\n";
 }
 
 bool exist(list<State*> states, State* state) {
@@ -259,13 +262,29 @@ int Nfa::rec_evaluate(string in, State *state) {
 
 int Nfa::rec_evaluate_second(string word, State* state) {
 	if(finals.size()>0) {
-
+		for(auto& f: finals) {
+			final =f;
+			if(rec_evaluate(word,state)==ACCEPT)
+				return ACCEPT;
+		}
+		return REJECT;
 	} else
 		return rec_evaluate(word,state);
 }
-
+void Nfa::print_finals() {
+	cout<<", final:  ";
+	if(finals.size()>0) {
+		for(auto& f:finals){
+			cout<< f->getId()<< " , ";
+		}
+		cout<<"\n";
+	} else {
+		cout<< final->getId()
+					<< "\n";
+	}
+}
 int Nfa::evaluate(string in) {
-	int result = rec_evaluate(in, initial);
+	int result = rec_evaluate_second(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
 	return result;
 }
@@ -276,8 +295,8 @@ Nfa::~Nfa() {
 }
 
 void Nfa::print() {
-	cout << "Initial: " << initial->getId() << ", final: " << final->getId()
-			<< "\n";
+	cout << "Initial: " << initial->getId();
+	print_finals();
 	for (auto& state : states) {
 		state->print();
 	}
@@ -314,16 +333,16 @@ int main() {
 	 */
 
 	list<int> chars;
-	chars.push_back('a');
+	chars.push_back('b');
 //chars.push_back('b');
 //chars.push_back('c');
 	Nfa *a = new Nfa(chars, false);
 	a->endAnywhere();
 	a->startAnywhere();
 
-	Nfa *b = new Nfa('b');
-//Nfa *c = new Nfa('e');
-//b->unify(c);
+	Nfa *b = new Nfa('a');
+	//	Nfa *c = new Nfa('e');
+	//b->unify(c);
 	b->apply_cardinality(PLUS);
 	b->endAnywhere();
 
@@ -335,17 +354,26 @@ int main() {
 	a->evaluate("b");
 
 	a->print();
-	a->eliminate_eps();
+	//a->eliminate_eps();
 
 	a->evaluate("ab");
-
+	a->eliminate_eps();
 	a->print();
+
+
 	a->evaluate("a");
 	a->evaluate("b");
-//a->evaluate("c");
-//a->evaluate("abc");
-//a->evaluate("d");
-//a->evaluate("dedede");
-//a->evaluate("fdedede");
+
+	/*a->print();
+	a->evaluate("a");
+	a->evaluate("b");
+	a->evaluate("c");
+	a->evaluate("abc");
+	a->evaluate("d");
+	a->evaluate("dedede");
+	a->evaluate("fdedede");
+
+	a->eliminate_eps();
+	a->print(); */
 }
 

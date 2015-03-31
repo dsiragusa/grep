@@ -30,7 +30,8 @@ class Nfa {
 	unordered_set<State*> finals;
 
 	int rec_evaluate(string, State *);
-
+	int rec_evaluate_second(string,State*);
+	void print_finals();
 	public:
 	Nfa(int);
 	Nfa(list<int>, bool);
@@ -46,7 +47,6 @@ class Nfa {
 	Nfa* determinize();
 	void print();
 	int evaluate(string);
-	int rec_evaluate_second(string);
 	Nfa(const Nfa *);
 	bool isAccessible(State*);
 };
