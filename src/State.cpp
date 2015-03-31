@@ -8,7 +8,8 @@
 #include "State.h"
 
 UniqueIdGenerator State::idGen = UniqueIdGenerator(0);
-const char State::EPS = '\0';
+const int State::EPS = 0x00000111;
+const int State::DOT = 0x00001011;
 
 State::State() {
 	id = idGen.getUniqueId();
@@ -37,7 +38,7 @@ int State::getId() {
 	return id;
 }
 
-list<State *> State::getTransitions(char symbol) {
+list<State *> State::getTransitions(int symbol) {
 	auto states = transitions.find(symbol);
 	if (states == transitions.end())
 		return list<State *>();
@@ -45,30 +46,33 @@ list<State *> State::getTransitions(char symbol) {
 	return states->second;
 }
 
-list<State *> State::getEpsTransitions() {
-	return getTransitions(EPS);
-}
-
-void State::setTransition(char symbol, State *state) {
+void State::setTransition(int symbol, State *state) {
 	if (transitions.find(symbol) == transitions.end())
 		transitions.emplace(symbol, list<State *>());
 
 	transitions.find(symbol)->second.push_back(state);
 }
 
-void State::setEpsTransition(State *state) {
-	setTransition(EPS, state);
-}
-
 void State::print() {
 	cout << getId() << " -> ";
 	for (auto& tr : transitions) {
-		char sy = tr.first;
-		cout << ((sy == EPS) ? '@' : sy) << "(";
+		int sy = tr.first;
+		cout << getChar(sy) << "(";
 		for (auto& next : tr.second) {
 			cout << next->getId() << " ";
 		}
 		cout << ") ";
 	}
 	cout << "\n";
+}
+
+string State::getChar(int symbol) {
+	switch (symbol) {
+	case EPS:
+		return "EPS";
+	case DOT:
+		return "DOT";
+	default:
+		return string(1, symbol);
+	}
 }

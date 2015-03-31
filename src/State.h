@@ -18,25 +18,26 @@ using namespace std;
 
 class State {
 public:
+	static const int EPS;
+	static const int DOT;
+
 	State();
 	virtual ~State();
 
 	int getId();
 
-	list<State *> getTransitions(char);
-	list<State *> getEpsTransitions();
-	void setTransition(char, State *);
-	void setEpsTransition(State *);
+	list<State *> getTransitions(int);
+	void setTransition(int, State *);
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
 
 private:
-	static const char EPS;
 	static UniqueIdGenerator idGen;
 
 	int id;
-	map<char, list<State *> > transitions;
+	map<int, list<State *> > transitions;
+	string getChar(int);
 };
 
 #endif /* SRC_STATE_H_ */

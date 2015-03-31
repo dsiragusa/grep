@@ -32,8 +32,11 @@ class Nfa {
 	int rec_evaluate(string, State *);
 
 	public:
-	Nfa(char);
+	Nfa(int);
+	Nfa(list<int>, bool);
 	virtual ~Nfa();
+	void startAnywhere();
+	void endAnywhere();
 	void concatenate(const Nfa *);
 	void unify(const Nfa *);
 	void apply_cardinality(enum card_t);

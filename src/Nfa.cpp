@@ -7,12 +7,30 @@
 
 #include "Nfa.h"
 
-Nfa::Nfa(char symbol) {
+Nfa::Nfa(int symbol) {
 	initial = new State();
-	final = new State();
-	initial->setTransition(symbol, final);
 	states.insert(initial);
+	final = new State();
 	states.insert(final);
+
+	initial->setTransition(symbol, final);
+}
+
+Nfa::Nfa(list<int> symbols, bool areNegated) {
+	initial = new State();
+	states.insert(initial);
+	final = new State();
+	states.insert(final);
+
+	for (auto& symbol : symbols) {
+		initial->setTransition(symbol, final);
+	}
+
+	if (areNegated) {
+		final = new State();
+		states.insert(final);
+		initial->setTransition(State::DOT, final);
+	}
 }
 
 Nfa::Nfa(const Nfa *toCopy) {
@@ -38,6 +56,16 @@ Nfa::Nfa(const Nfa *toCopy) {
 	final = oldToNewStates.find(toCopy->final)->second;
 }
 
+//should be called whenever $ is not present
+void Nfa::startAnywhere() {
+	initial->setTransition(State::DOT, initial);
+}
+
+//should be called whenever ^ is not present
+void Nfa::endAnywhere() {
+	final->setTransition(State::DOT, final);
+}
+
 void Nfa::concatenate(const Nfa *toAppend) {
 	states.insert(toAppend->states.begin(), toAppend->states.end());
 	states.erase(toAppend->initial);
@@ -53,11 +81,11 @@ void Nfa::unify(const Nfa *toUnify) {
 	states.insert(newInitial);
 	states.insert(newFinal);
 
-	newInitial->setEpsTransition(initial);
-	newInitial->setEpsTransition(toUnify->initial);
+	newInitial->setTransition(State::EPS, initial);
+	newInitial->setTransition(State::EPS, toUnify->initial);
 
-	final->setEpsTransition(newFinal);
-	toUnify->final->setEpsTransition(newFinal);
+	final->setTransition(State::EPS, newFinal);
+	toUnify->final->setTransition(State::EPS, newFinal);
 
 	initial = newInitial;
 	final = newFinal;
@@ -69,14 +97,14 @@ void Nfa::apply_cardinality(enum card_t type) {
 	states.insert(newInitial);
 	states.insert(newFinal);
 
-	final->setEpsTransition(newFinal);
-	newInitial->setEpsTransition(initial);
+	final->setTransition(State::EPS, newFinal);
+	newInitial->setTransition(State::EPS, initial);
 
 	if (type != OPTION)
-		final->setEpsTransition(initial);
+		final->setTransition(State::EPS, initial);
 
 	if (type != PLUS)
-		newInitial->setEpsTransition(newFinal);
+		newInitial->setTransition(State::EPS, newFinal);
 
 	initial = newInitial;
 	final = newFinal;
@@ -112,7 +140,7 @@ void Nfa::apply_cardinality(int min, int max) {
 			}
 
 			for (auto& abort : abortStates) {
-				(*states.find(abort))->setEpsTransition(newFinal);
+				(*states.find(abort))->setTransition(State::EPS, newFinal);
 			}
 			states.insert(newFinal);
 			final = newFinal;
@@ -126,7 +154,7 @@ int Nfa::rec_evaluate(string in, State *state) {
 		if (state == final)
 			return ACCEPT;
 
-		list<State *> eps_states = state->getEpsTransitions();
+		list<State *> eps_states = state->getTransitions(State::EPS);
 		for (auto& eps_state : eps_states)
 			if (rec_evaluate(in, eps_state) == ACCEPT)
 				return ACCEPT;
@@ -135,14 +163,19 @@ int Nfa::rec_evaluate(string in, State *state) {
 	}
 
 	list<State *> next_states = state->getTransitions(in.at(0));
-	list<State *> eps_states = state->getEpsTransitions();
+	list<State *> eps_states = state->getTransitions(State::EPS);
 
 	for (auto& next_state : next_states)
 		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
+
 	for (auto& eps_state : eps_states)
 		if (rec_evaluate(in, eps_state) == ACCEPT)
+			return ACCEPT;
+
+	for (auto& next_state : state->getTransitions(State::DOT))
+		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
 	return REJECT;
@@ -168,6 +201,7 @@ void Nfa::print() {
 
 
 int main () {
+	/*
 	Nfa *a = new Nfa('a');
 	a->print();
 	a->evaluate("a");
@@ -193,7 +227,32 @@ int main () {
 	a->evaluate("abababab");
 	a->evaluate("ababababab");
 	a->evaluate("abababababab");
+	*/
 
+
+	list<int> chars;
+	chars.push_back('a');
+	chars.push_back('b');
+	chars.push_back('c');
+	Nfa *a = new Nfa(chars, false);
+	a->endAnywhere();
+	a->startAnywhere();
+
+	Nfa *b = new Nfa('d');
+	Nfa *c = new Nfa('e');
+	b->unify(c);
+	b->apply_cardinality(PLUS);
+	b->endAnywhere();
+
+	a->unify(b);
+	a->print();
+	a->evaluate("a");
+	a->evaluate("b");
+	a->evaluate("c");
+	a->evaluate("abc");
+	a->evaluate("d");
+	a->evaluate("dedede");
+	a->evaluate("fdedede");
 
 }
 
