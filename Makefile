@@ -3,6 +3,9 @@ C11FLAG = -std=c++0x
 
 all: grep
 
+dfa: obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o obj/Dfa.o
+	$(CC) $^ -o bin/$@ 
+
 nfa: obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o
 	$(CC) $^ -o bin/$@ 
 

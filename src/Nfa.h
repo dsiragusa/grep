@@ -9,7 +9,6 @@
 #define SRC_NFA_H_
 
 #include <iostream>
-#include <map>
 #include <unordered_set>
 #include "State.h"
 
@@ -26,8 +25,7 @@ class Nfa {
 	private:
 	Nfa(const Nfa *);
 	unordered_set<State *> states;
-	State *final;
-	State *initial;
+	State *initial, *final;
 
 	int rec_evaluate(string, State *);
 
@@ -35,12 +33,17 @@ class Nfa {
 	Nfa(int);
 	Nfa(list<int>, bool);
 	virtual ~Nfa();
+
 	void startAnywhere();
 	void endAnywhere();
 	void concatenate(const Nfa *);
 	void unify(const Nfa *);
 	void apply_cardinality(enum card_t);
 	void apply_cardinality(int, int);
+
+	unordered_set<State *> getStates();
+	State * getInitial();
+	State * getFinal();
 
 	void print();
 	int evaluate(string);

@@ -17,7 +17,8 @@ META (\^|\-|\])
 \n		{printf("\n");}
 {ORD}	{yylval.s = yytext[0]; return ORD_CHAR;}
 {QUOTED}	{return QUOTED_CHAR;}
-
-
+\*		{return DUP_STAR;}
+\+		{return DUP_PLUS;}
+\?		{return DUP_OPT;}
 %%
 

@@ -181,14 +181,26 @@ int Nfa::rec_evaluate(string in, State *state) {
 	return REJECT;
 }
 
+Nfa::~Nfa() {
+	// TODO Auto-generated destructor stub
+}
+
+unordered_set<State *> Nfa::getStates() {
+	return states;
+}
+
+State * Nfa::getInitial() {
+	return initial;
+}
+
+State * Nfa::getFinal() {
+	return final;
+}
+
 int Nfa::evaluate(string in) {
 	int result = rec_evaluate(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
 	return result;
-}
-
-Nfa::~Nfa() {
-	// TODO Auto-generated destructor stub
 }
 
 void Nfa::print() {
@@ -201,6 +213,7 @@ void Nfa::print() {
 
 
 int main () {
+
 	/*
 	Nfa *a = new Nfa('a');
 	a->print();
@@ -229,7 +242,7 @@ int main () {
 	a->evaluate("abababababab");
 	*/
 
-
+/*
 	list<int> chars;
 	chars.push_back('a');
 	chars.push_back('b');
@@ -253,6 +266,17 @@ int main () {
 	a->evaluate("d");
 	a->evaluate("dedede");
 	a->evaluate("fdedede");
+*/
+	set<int> listA, listB, listC, listD;
+	listA.insert(1); listA.insert(2); listA.insert(3);
+	listB.insert(2); listB.insert(1); listB.insert(3);
+	listC.insert(1); listC.insert(2); listC.insert(4);
+	listD.insert(1); listD.insert(3); listD.insert(4);
 
+
+	map<set<int>, string> myMap;
+	myMap.emplace(listA, "toto");
+	myMap.emplace(listC, "soleil");
+
+	cout << myMap.find(listB)->second << endl;
 }
-
