@@ -299,6 +299,7 @@ void Nfa::print_finals() {
 					<< "\n";
 	}
 }
+
 int Nfa::evaluate(string in) {
 	int result = rec_evaluate_second(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";

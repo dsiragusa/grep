@@ -18,6 +18,7 @@ class Dfa {
 public:
 	Dfa(Nfa *);
 	virtual ~Dfa();
+	void print();
 
 
 private:
@@ -27,6 +28,7 @@ private:
 
 	void determinize(Nfa *);
 	void rec_determinize(Nfa *, map<set<State *>, State *> *, set<State *>);
+	void print_finals();
 };
 
 #endif /* SRC_DFA_H_ */
