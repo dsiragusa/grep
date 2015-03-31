@@ -23,15 +23,14 @@ public:
 
 	State();
 	virtual ~State();
-
 	int getId();
-
+	void delete_transitions(int);
 	list<State *> getTransitions(int);
 	void setTransition(int, State *);
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
-
+	list<int> get_symbols();
 private:
 	static UniqueIdGenerator idGen;
 

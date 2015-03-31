@@ -8,8 +8,8 @@
 #include "State.h"
 
 UniqueIdGenerator State::idGen = UniqueIdGenerator(0);
-const int State::EPS = 0x00000111;
-const int State::DOT = 0x00001011;
+const int State::EPS = 0x00000100;
+const int State::DOT = 0x00000200;
 
 State::State() {
 	id = idGen.getUniqueId();
@@ -46,6 +46,13 @@ list<State *> State::getTransitions(int symbol) {
 	return states->second;
 }
 
+list<int> State::get_symbols() {
+	list<int> symbols;
+	for(auto& t:transitions){
+		symbols.push_back(t.first);
+	}
+	return	symbols;
+}
 void State::setTransition(int symbol, State *state) {
 	if (transitions.find(symbol) == transitions.end())
 		transitions.emplace(symbol, list<State *>());
@@ -64,6 +71,10 @@ void State::print() {
 		cout << ") ";
 	}
 	cout << "\n";
+}
+
+void State::delete_transitions( int symbol) {
+	transitions.erase(symbol);
 }
 
 string State::getChar(int symbol) {

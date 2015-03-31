@@ -23,9 +23,9 @@ enum card_t {KLEENE_STAR, OPTION, PLUS};
 
 class Nfa {
 	private:
-	Nfa(const Nfa *);
 	unordered_set<State *> states;
 	State *initial, *final;
+	unordered_set<State*> finals;
 
 	int rec_evaluate(string, State *);
 
@@ -45,8 +45,14 @@ class Nfa {
 	State * getInitial();
 	State * getFinal();
 
+	void eliminate_eps();
+	list<State*> getStatesWithEpSTransition();
+
 	void print();
 	int evaluate(string);
+	int rec_evaluate_second(string);
+	Nfa(const Nfa *);
+	bool isAccessible(State*);
 };
 
 #endif /* SRC_NFA_H_ */
