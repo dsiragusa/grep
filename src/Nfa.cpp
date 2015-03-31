@@ -2,7 +2,7 @@
  * Nfa.cpp
  *
  *  Created on: 28/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #include "Nfa.h"
@@ -100,7 +100,6 @@ void Nfa::eliminate_eps() {
 	list<int> symbols;
 
 	while (!isEmpty) {
-		cout << _stateEPS.size() << " Size\n";
 		current = _stateEPS.front();
 		_stateEPS.pop_front();
 		_states = current->getTransitions(State::EPS);
@@ -118,17 +117,24 @@ void Nfa::eliminate_eps() {
 					current->setTransition(symbol, e1);
 				}
 			}
-			current->delete_transitions(State::EPS);
 			if(!isAccessible(s)) {
 				states.erase(s);
 			}
+			current->delete_transition(State::EPS,s);
 		}
+
 		states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();
 		isEmpty = _stateEPS.empty();
 	}
+	if(isAccessible(final))
+		finals.insert(final);
 }
 
+
+unordered_set<State*> Nfa::getFinals(){
+	return finals;
+}
 bool exist(list<State*> states, State* state) {
 	for (auto& stat : states) {
 		if (stat == state)
@@ -269,24 +275,39 @@ State * Nfa::getFinal() {
 	return final;
 }
 
-/*
 int Nfa::rec_evaluate_second(string word, State* state) {
 	if(finals.size()>0) {
-
+		for(auto& f: finals) {
+			final =f;
+			if(rec_evaluate(word,state)==ACCEPT)
+				return ACCEPT;
+		}
+		return REJECT;
 	} else
 		return rec_evaluate(word,state);
 }
-*/
 
+void Nfa::print_finals() {
+	cout<<", final:  ";
+	if(finals.size()>0) {
+		for(auto& f:finals){
+			cout<< f->getId()<< " , ";
+		}
+		cout<<"\n";
+	} else {
+		cout<< final->getId()
+					<< "\n";
+	}
+}
 int Nfa::evaluate(string in) {
-	int result = rec_evaluate(in, initial);
+	int result = rec_evaluate_second(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
 	return result;
 }
 
 void Nfa::print() {
-	cout << "Initial: " << initial->getId() << ", final: " << final->getId()
-			<< "\n";
+	cout << "Initial: " << initial->getId();
+	print_finals();
 	for (auto& state : states) {
 		state->print();
 	}
@@ -336,5 +357,36 @@ int main() {
 
 	cout << myMap.find(listB)->second << endl;
 
+	list<int> chars;
+	chars.push_back('b');
+//chars.push_back('b');
+//chars.push_back('c');
+	Nfa *a = new Nfa(chars, false);
+	a->endAnywhere();
+	a->startAnywhere();
+
+	Nfa *b = new Nfa('a');
+	//	Nfa *c = new Nfa('e');
+	//b->unify(c);
+	b->apply_cardinality(PLUS);
+	b->endAnywhere();
+
+	a->unify(b);
+
+	a->evaluate("ab");
+
+	a->evaluate("a");
+	a->evaluate("b");
+
+	a->print();
+	//a->eliminate_eps();
+
+	a->evaluate("ab");
+	a->eliminate_eps();
+	a->print();
+
+
+	a->evaluate("a");
+	a->evaluate("b");
 }
-	*/
+*/

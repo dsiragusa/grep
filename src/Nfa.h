@@ -2,7 +2,7 @@
  * Nfa.h
  *
  *  Created on: 28/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #ifndef SRC_NFA_H_
@@ -29,7 +29,8 @@ class Nfa {
 	unordered_set<State*> finals;
 
 	int rec_evaluate(string, State *);
-
+	int rec_evaluate_second(string,State*);
+	void print_finals();
 	public:
 	Nfa(int);
 	Nfa(list<int>, bool);
@@ -51,9 +52,9 @@ class Nfa {
 
 	void print();
 	int evaluate(string);
-	int rec_evaluate_second(string);
 	Nfa(const Nfa *);
 	bool isAccessible(State*);
+	unordered_set<State*> getFinals();
 };
 
 #endif /* SRC_NFA_H_ */
