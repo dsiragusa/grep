@@ -24,7 +24,7 @@ public:
 	State();
 	virtual ~State();
 	int getId();
-	void delete_transitions(int);
+	void delete_transition(int,State*);
 	list<State *> getTransitions(int);
 	void setTransition(int, State *);
 	void copyTransitions(const State *);

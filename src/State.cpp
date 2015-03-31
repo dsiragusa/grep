@@ -73,8 +73,15 @@ void State::print() {
 	cout << "\n";
 }
 
-void State::delete_transitions( int symbol) {
-	transitions.erase(symbol);
+void State::delete_transition(int symbol,State* toDelete) {
+	map<int, list<State*>>::iterator it;
+	it = transitions.find(symbol);
+	list<State*> temp;
+	if(it!=transitions.end()) {
+		it->second.remove(toDelete);
+		if(it->second.empty())
+			transitions.erase(symbol);
+	}
 }
 
 string State::getChar(int symbol) {

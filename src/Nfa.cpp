@@ -100,7 +100,6 @@ void Nfa::eliminate_eps() {
 	list<int> symbols;
 
 	while (!isEmpty) {
-		cout << _stateEPS.size() << " Size\n";
 		current = _stateEPS.front();
 		_stateEPS.pop_front();
 		_states = current->getTransitions(State::EPS);
@@ -118,18 +117,18 @@ void Nfa::eliminate_eps() {
 					current->setTransition(symbol, e1);
 				}
 			}
-			current->delete_transitions(State::EPS);
 			if(!isAccessible(s)) {
 				states.erase(s);
 			}
+			current->delete_transition(State::EPS,s);
 		}
+
 		states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();
 		isEmpty = _stateEPS.empty();
 	}
 	if(isAccessible(final))
 		finals.insert(final);
-	cout<<"Size: "<<finals.size()<<"\n";
 }
 
 bool exist(list<State*> states, State* state) {
