@@ -2,7 +2,7 @@
  * Nfa.h
  *
  *  Created on: 28/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #ifndef SRC_NFA_H_
@@ -49,6 +49,7 @@ class Nfa {
 	int evaluate(string);
 	Nfa(const Nfa *);
 	bool isAccessible(State*);
+	unordered_set<State*> getFinals();
 };
 
 #endif /* SRC_NFA_H_ */

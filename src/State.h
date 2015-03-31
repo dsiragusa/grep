@@ -2,7 +2,7 @@
  * State.h
  *
  *  Created on: 28/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #ifndef SRC_STATE_H_

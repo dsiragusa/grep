@@ -2,7 +2,7 @@
  * Nfa.cpp
  *
  *  Created on: 28/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #include "Nfa.h"
@@ -131,6 +131,10 @@ void Nfa::eliminate_eps() {
 		finals.insert(final);
 }
 
+
+unordered_set<State*> Nfa::getFinals(){
+	return finals;
+}
 bool exist(list<State*> states, State* state) {
 	for (auto& stat : states) {
 		if (stat == state)
