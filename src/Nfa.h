@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <unordered_set>
+#include <set>
 #include "State.h"
 
 using namespace std;

@@ -293,8 +293,9 @@ void Nfa::print() {
 	cout << "\n\n";
 }
 
+/*
+
 int main() {
-	/*
 	 Nfa *a = new Nfa('a');
 	 a->print();
 	 a->evaluate("a");
@@ -322,6 +323,7 @@ int main() {
 	 a->evaluate("abababababab");
 	 */
 
+	/*
 	set<int> listA, listB, listC, listD;
 	listA.insert(1); listA.insert(2); listA.insert(3);
 	listB.insert(2); listB.insert(1); listB.insert(3);
@@ -333,4 +335,6 @@ int main() {
 	myMap.emplace(listC, "soleil");
 
 	cout << myMap.find(listB)->second << endl;
+
 }
+	*/
