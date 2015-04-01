@@ -31,6 +31,7 @@ class Nfa {
 	int rec_evaluate(string, State *);
 	int rec_evaluate_second(string,State*);
 	void print_finals();
+
 	public:
 	Nfa(int);
 	Nfa(list<int>, bool);

@@ -35,12 +35,19 @@ void Dfa::rec_determinize(Nfa *toDeterminize, map<set<State *>, State *> *superS
 
 	map<int, set<State *> > transitions;
 
+	unordered_set<State *> dotTrans;
+	for (auto state : currentId) {
+		auto dot = state->getTransitions(State::DOT);
+		dotTrans.insert(dot.begin(), dot.end());
+	}
+
 	for (auto state : currentId) {
 		if (toDeterminize->getFinals().find(state) != toDeterminize->getFinals().end())
 			finals.insert(current);
 
 		for (auto symbol : state->get_symbols()) {
 			auto nextStates = state->getTransitions(symbol);
+
 			if (transitions.find(symbol) == transitions.end()) {
 				auto tmp = set<State *> (nextStates.begin(), nextStates.end());
 				transitions.emplace(symbol, tmp);
@@ -48,6 +55,8 @@ void Dfa::rec_determinize(Nfa *toDeterminize, map<set<State *>, State *> *superS
 			else {
 				transitions.find(symbol)->second.insert(nextStates.begin(), nextStates.end());
 			}
+
+			transitions.find(symbol)->second.insert(dotTrans.begin(), dotTrans.end());
 		}
 	}
 

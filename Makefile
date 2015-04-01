@@ -15,7 +15,7 @@ obj/%.o: src/%.cpp
 grep: src/lex.l src/parser.y obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o
 	flex src/lex.l
 	bison -d src/parser.y
-	$(CC) lex.yy.c parser.tab.c obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o -o $@ $(C11FLAG)
+	$(CC) lex.yy.c parser.tab.c obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o -o $@ $(C11FLAG) -ll
 
 clean:
 	rm -rf bin/* obj/*

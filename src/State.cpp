@@ -17,9 +17,9 @@ State::State() {
 
 void State::adaptTransitions(const State *toCopy, const map<State *, State *> *oldToNewStates) {
 	for (auto& trans : toCopy->transitions) {
-		list<State *> newNextStates;
+		unordered_set<State *> newNextStates;
 		for (auto& nextState : trans.second) {
-			newNextStates.push_back(oldToNewStates->find(nextState)->second);
+			newNextStates.insert(oldToNewStates->find(nextState)->second);
 		}
 
 		transitions.emplace(trans.first, newNextStates);
@@ -38,10 +38,10 @@ int State::getId() {
 	return id;
 }
 
-list<State *> State::getTransitions(int symbol) {
+unordered_set<State *> State::getTransitions(int symbol) {
 	auto states = transitions.find(symbol);
 	if (states == transitions.end())
-		return list<State *>();
+		return unordered_set<State *>();
 
 	return states->second;
 }
@@ -55,9 +55,9 @@ list<int> State::get_symbols() {
 }
 void State::setTransition(int symbol, State *state) {
 	if (transitions.find(symbol) == transitions.end())
-		transitions.emplace(symbol, list<State *>());
+		transitions.emplace(symbol, unordered_set<State *>());
 
-	transitions.find(symbol)->second.push_back(state);
+	transitions.find(symbol)->second.insert(state);
 }
 
 void State::print() {
@@ -74,14 +74,13 @@ void State::print() {
 }
 
 void State::delete_transition(int symbol,State* toDelete) {
-	map<int, list<State*>>::iterator it;
-	it = transitions.find(symbol);
-	list<State*> temp;
-	if(it!=transitions.end()) {
-		it->second.remove(toDelete);
-		if(it->second.empty())
-			transitions.erase(symbol);
-	}
+	auto transition = transitions.find(symbol);
+	if (transition == transitions.end())
+		return;
+
+	transition->second.erase(toDelete);
+	if (transition->second.empty())
+		transitions.erase(symbol);
 }
 
 string State::getChar(int symbol) {

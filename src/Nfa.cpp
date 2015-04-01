@@ -92,8 +92,8 @@ void Nfa::unify(const Nfa *toUnify) {
 }
 
 void Nfa::eliminate_eps() {
-	list<State*> _states;
-	list<State*> _states1;
+	unordered_set<State*> _states;
+	unordered_set<State*> _states1;
 	list<State*> _stateEPS = getStatesWithEpSTransition();
 	bool isEmpty = _stateEPS.empty();
 	State* current;
@@ -135,22 +135,16 @@ void Nfa::eliminate_eps() {
 unordered_set<State*> Nfa::getFinals(){
 	return finals;
 }
-bool exist(list<State*> states, State* state) {
-	for (auto& stat : states) {
-		if (stat == state)
-			return true;
-	}
-	return false;
-}
+
 
 bool Nfa::isAccessible(State* state) {
 	list<int> symbols;
-	list<State*> _states;
+	unordered_set<State*> _states;
 	for (auto& _state : states) {
 		symbols = state->get_symbols();
 		for (auto s : symbols) {
 			_states = state->getTransitions(s);
-			if (exist(_states, state))
+			if (_states.find(state) != _states.end())
 				return true;
 		}
 	}
@@ -158,9 +152,8 @@ bool Nfa::isAccessible(State* state) {
 }
 
 list<State*> Nfa::getStatesWithEpSTransition() {
-	list<State*> temp;
+	unordered_set<State*> temp;
 	list<State*> result = list<State*>();
-	list<State*>::iterator it;
 	for (auto state : states) {
 		temp = state->getTransitions(State::EPS);
 		if (!temp.empty()) {
@@ -233,22 +226,18 @@ int Nfa::rec_evaluate(string in, State *state) {
 		if (state == final)
 			return ACCEPT;
 
-		list<State *> eps_states = state->getTransitions(State::EPS);
-		for (auto& eps_state : eps_states)
+		for (auto& eps_state : state->getTransitions(State::EPS))
 			if (rec_evaluate(in, eps_state) == ACCEPT)
 				return ACCEPT;
 
 		return REJECT;
 	}
 
-	list<State *> next_states = state->getTransitions(in.at(0));
-	list<State *> eps_states = state->getTransitions(State::EPS);
-
-	for (auto& next_state : next_states)
+	for (auto& next_state : state->getTransitions(in.at(0)))
 		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
-	for (auto& eps_state : eps_states)
+	for (auto& eps_state : state->getTransitions(State::EPS))
 		if (rec_evaluate(in, eps_state) == ACCEPT)
 			return ACCEPT;
 

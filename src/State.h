@@ -11,6 +11,7 @@
 #include <iostream>
 #include <map>
 #include <list>
+#include <unordered_set>
 #include <exception>
 #include "UniqueIdGenerator.h"
 
@@ -25,7 +26,7 @@ public:
 	virtual ~State();
 	int getId();
 	void delete_transition(int,State*);
-	list<State *> getTransitions(int);
+	unordered_set<State *> getTransitions(int);
 	void setTransition(int, State *);
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
@@ -35,7 +36,7 @@ private:
 	static UniqueIdGenerator idGen;
 
 	int id;
-	map<int, list<State *> > transitions;
+	map<int, unordered_set<State *> > transitions;
 	string getChar(int);
 };
 
