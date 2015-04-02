@@ -43,13 +43,12 @@ Nfa::Nfa(const Nfa *toCopy) {
 	}
 
 	auto stateToCopy = toCopy->states.begin();
-	auto myState = states.begin();
 
 	while (stateToCopy != toCopy->states.end()) {
-		(*myState)->adaptTransitions(*stateToCopy, &oldToNewStates);
+		auto newState = oldToNewStates.find(*stateToCopy)->second;
+		newState->adaptTransitions(*stateToCopy, &oldToNewStates);
 
 		stateToCopy++;
-		myState++;
 	}
 
 	initial = oldToNewStates.find(toCopy->initial)->second;
@@ -315,78 +314,19 @@ void Nfa::toDot(char const *fileName) {
 }
 
 /*
-
 int main() {
-	 Nfa *a = new Nfa('a');
-	 a->print();
-	 a->evaluate("a");
-
-	 Nfa *b = new Nfa('b');
-	 b->print();
-	 b->evaluate("b");
-	 b->evaluate("a");
-
-	 //a->unify(b);
-	 a->concatenate(b);
-	 a->print();
-	 a->evaluate("a");
-	 a->evaluate("b");
-	 a->evaluate("ab");
-
-
-	 a->apply_cardinality(3, 5);
-	 a->print();
-	 a->evaluate("ab");
-	 a->evaluate("abab");
-	 a->evaluate("ababab");
-	 a->evaluate("abababab");
-	 a->evaluate("ababababab");
-	 a->evaluate("abababababab");
-	 */
-
-	/*
-	set<int> listA, listB, listC, listD;
-	listA.insert(1); listA.insert(2); listA.insert(3);
-	listB.insert(2); listB.insert(1); listB.insert(3);
-	listC.insert(1); listC.insert(2); listC.insert(4);
-	listD.insert(1); listD.insert(3); listD.insert(4);
-
-	map<set<int>, string> myMap;
-	myMap.emplace(listA, "toto");
-	myMap.emplace(listC, "soleil");
-
-	cout << myMap.find(listB)->second << endl;
-
-	list<int> chars;
-	chars.push_back('b');
-//chars.push_back('b');
-//chars.push_back('c');
-	Nfa *a = new Nfa(chars, false);
-	a->endAnywhere();
-	a->startAnywhere();
-
-	Nfa *b = new Nfa('a');
-	//	Nfa *c = new Nfa('e');
-	//b->unify(c);
-	b->apply_cardinality(PLUS);
-	b->endAnywhere();
-
-	a->unify(b);
-
-	a->evaluate("ab");
-
-	a->evaluate("a");
-	a->evaluate("b");
-
+	Nfa *a = new Nfa('a');
+	Nfa *b = new Nfa('b');
+	Nfa *c = new Nfa('c');
+	Nfa *d = new Nfa('d');
+	a->concatenate(b);
+	a->concatenate(c);
+	a->concatenate(d);
+	a->toDot("test.dot");
 	a->print();
-	//a->eliminate_eps();
-
-	a->evaluate("ab");
-	a->eliminate_eps();
-	a->print();
-
-
-	a->evaluate("a");
-	a->evaluate("b");
+	Nfa *e = new Nfa(a);
+	e->print();
+	a->toDot("copy.dot");
+	//a->apply_cardinality(2, 4);
 }
 */

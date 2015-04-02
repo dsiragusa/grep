@@ -24,21 +24,6 @@ void State::adaptTransitions(const State *toCopy, const map<State *, State *> *o
 
 		transitions.emplace(trans.first, newNextStates);
 	}
-
-	for (auto& trans : toCopy->transitions) {
-		cout << getChar(trans.first) << " -> ";
-		for (auto& nextState : trans.second) {
-			cout << nextState->getId() << " ";
-		}
-		cout << endl;
-	}
-	for (auto& trans : transitions) {
-		cout << getChar(trans.first) << " -> ";
-		for (auto& nextState : trans.second) {
-			cout << nextState->getId() << " ";
-		}
-		cout << endl;
-	}
 }
 
 void State::copyTransitions(const State *toCopy) {
