@@ -2,13 +2,14 @@
  * Dfa.h
  *
  *  Created on: 31/mar/2015
- *      Author: daniele
+ *      Author: Daniele
  */
 
 #ifndef SRC_DFA_H_
 #define SRC_DFA_H_
 
 #include <set>
+#include <unordered_set>
 #include "State.h"
 #include "Nfa.h"
 
@@ -19,16 +20,19 @@ public:
 	Dfa(Nfa *);
 	virtual ~Dfa();
 	void print();
-
+	void minimise_hopcroft();
 
 private:
 	unordered_set<State *> states;
 	State *initial;
 	unordered_set<State *> finals;
+	bool isMinimal=false;
 
 	void determinize(Nfa *);
 	void rec_determinize(Nfa *, map<set<State *>, State *> *, set<State *>);
 	void print_finals();
+	unordered_set<State *> unreachable_states();
+	unordered_set<int> get_symbols();
 };
 
 #endif /* SRC_DFA_H_ */
