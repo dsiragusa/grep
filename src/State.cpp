@@ -24,6 +24,21 @@ void State::adaptTransitions(const State *toCopy, const map<State *, State *> *o
 
 		transitions.emplace(trans.first, newNextStates);
 	}
+
+	for (auto& trans : toCopy->transitions) {
+		cout << getChar(trans.first) << " -> ";
+		for (auto& nextState : trans.second) {
+			cout << nextState->getId() << " ";
+		}
+		cout << endl;
+	}
+	for (auto& trans : transitions) {
+		cout << getChar(trans.first) << " -> ";
+		for (auto& nextState : trans.second) {
+			cout << nextState->getId() << " ";
+		}
+		cout << endl;
+	}
 }
 
 void State::copyTransitions(const State *toCopy) {
@@ -71,6 +86,15 @@ void State::print() {
 		cout << ") ";
 	}
 	cout << "\n";
+}
+
+void State::toDot(FILE *dotFile) {
+	for (auto& tr : transitions) {
+		int sy = tr.first;
+		for (auto& next : tr.second) {
+			fprintf(dotFile, "%d -> %d [label=\"%s\"];\n", getId(), next->getId(), getChar(sy).c_str());
+		}
+	}
 }
 
 void State::delete_transition(int symbol,State* toDelete) {

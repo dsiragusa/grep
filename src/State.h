@@ -9,6 +9,7 @@
 #define SRC_STATE_H_
 
 #include <iostream>
+#include <cstdio>
 #include <map>
 #include <list>
 #include <unordered_set>
@@ -31,6 +32,7 @@ public:
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
+	void toDot(FILE *);
 	list<int> get_symbols();
 private:
 	static UniqueIdGenerator idGen;

@@ -1,6 +1,7 @@
 %{
 	#include <cstdio>
 	#include <iostream>
+	#include <stack>
 	#include "src/Nfa.h"
 	
 	using namespace std;
@@ -10,6 +11,8 @@
 	extern "C" FILE* yyin;
 	
 	void yyerror(const char *p) { cerr << "\nInvalid regular expression\n"; }
+	
+	stack<Nfa *> nfas;
 %}
 
 %union {
@@ -17,8 +20,6 @@
 	char *s;
 	char c;
 }
-
-%glr-parser
 
 %token<c>  ORD_CHAR QUOTED_CHAR <num>DUP_COUNT
 %token<c>    COLL_ELEM /*META_CHAR*/
@@ -31,10 +32,10 @@
 
 
 extended_reg_exp   :                      ERE_branch
-                   | extended_reg_exp '|' ERE_branch
+                   | extended_reg_exp '|' ERE_branch	{cout << "{OR}"; Nfa *a = nfas.top(); nfas.pop(); nfas.top()->unify(a);}
                    ;
 ERE_branch         :            ERE_expression
-                   | ERE_branch ERE_expression
+                   | ERE_branch ERE_expression		{cout << "CAT"; Nfa *a = nfas.top(); nfas.pop(); nfas.top()->concatenate(a);}
                    ;
 ERE_expression     : one_char_or_coll_elem_ERE
                    | '^'	{cout << "^";}
@@ -42,17 +43,17 @@ ERE_expression     : one_char_or_coll_elem_ERE
                    | '(' extended_reg_exp ')'	{cout << "PAREN";}
                    | ERE_expression ERE_dupl_symbol
                    ;
-one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]";}
-                   | QUOTED_CHAR		{cout << "["<<$1<<"]";}
-                   | '.'				{cout << "DOT";}
+one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]"; nfas.push(new Nfa($1));}
+                   | QUOTED_CHAR		{cout << "["<<$1<<"]"; nfas.push(new Nfa($1));}
+                   | '.'				{cout << "DOT"; nfas.push(new Nfa(State::DOT));}
                    | bracket_expression
                    ;
-ERE_dupl_symbol    : '*'	{cout << "STAR";}
-                   | '+'	{cout << "PLUS";}
-                   | '?'	{cout << "OPT";}
-                   | '{' DUP_COUNT               '}'	{cout << "{"<<$2<<"}";}
-                   | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}";}
-                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}";}
+ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->apply_cardinality(KLEENE_STAR);}
+                   | '+'	{cout << "PLUS"; nfas.top()->apply_cardinality(PLUS);}
+                   | '?'	{cout << "OPT"; nfas.top()->apply_cardinality(OPTION);}
+                   | '{' DUP_COUNT               '}'	{cout << "{"<<$2<<"}"; nfas.top()->apply_cardinality($2, SIMPLE_COUNT);}
+                   | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}"; nfas.top()->apply_cardinality($2, UNBOUNDED);}
+                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}"; nfas.top()->apply_cardinality($2, $4);}
                    ;
             
 bracket_expression : '[' matching_list    ']'	{cout << "matching";}
@@ -103,7 +104,10 @@ int main(int argc, char** argv) {
 		yyparse();
 		
 	} while (!feof(yyin));
-	
+	cout << nfas.size();
+	nfas.top()->print();
+	nfas.top()->toDot("nfa.dot");
+	nfas.top()->evaluate(argv[1]);
 }
 
 

@@ -304,6 +304,16 @@ void Nfa::print() {
 	cout << "\n\n";
 }
 
+void Nfa::toDot(char const *fileName) {
+	FILE *dotFile = fopen(fileName, "w");
+	fprintf(dotFile, "digraph nfa{\n");
+	for (auto& state : states) {
+		state->toDot(dotFile);
+	}
+	fprintf(dotFile, "}");
+	fclose(dotFile);
+}
+
 /*
 
 int main() {

@@ -9,6 +9,7 @@
 #define SRC_NFA_H_
 
 #include <iostream>
+#include <fstream>
 #include <unordered_set>
 #include <set>
 #include "State.h"
@@ -52,6 +53,7 @@ class Nfa {
 	list<State*> getStatesWithEpSTransition();
 
 	void print();
+	void toDot(char const *);
 	int evaluate(string);
 	Nfa(const Nfa *);
 	bool isAccessible(State*);

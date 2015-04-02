@@ -12,7 +12,7 @@ QUOTED \\[[\()|$^.{*+?]
 ORD [^[\()|$^.{*+?]
 
 %%
-
+\n
 \{		{BEGIN DUP; return '{';}
 <DUP>[0-9]+	{yylval.num = atoi(yytext); return DUP_COUNT;}
 <DUP>,		{return ',';}
