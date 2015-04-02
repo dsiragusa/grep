@@ -7,9 +7,8 @@
 	using namespace std;
 	
 	int yylex();
-	extern "C" int yyparse();
-	extern "C" FILE* yyin;
-	
+	int yyparse();
+	void parse_string(char const *);
 	void yyerror(const char *p) { cerr << "\nInvalid regular expression\n"; }
 	
 	stack<Nfa *> nfas;
@@ -97,17 +96,17 @@ character_class : Open_colon class_name Colon_close		{}
 %%
 
 int main(int argc, char** argv) {
-	// determinisation et obtenier un dfa pour validation
-	yyin = stdin;
-
-	do {
-		yyparse();
-		
-	} while (!feof(yyin));
+	if (argc < 3) {
+		cerr << "Usage: grep <regex> <string>" << endl;
+		exit(0);
+	}
+	
+	parse_string(argv[1]);
+	yyparse();
 	cout << nfas.size();
 	nfas.top()->print();
 	nfas.top()->toDot("nfa.dot");
-	nfas.top()->evaluate(argv[1]);
+	nfas.top()->evaluate(argv[2]);
 }
 
 

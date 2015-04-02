@@ -45,3 +45,6 @@ ORD [^[\()|$^.{*+?]
 .		{return yytext[0];}
 %%
 
+void parse_string(char const *str) {
+	yy_switch_to_buffer(yy_scan_string(str));
+}
