@@ -9,9 +9,37 @@
 	int yylex();
 	int yyparse();
 	void parse_string(char const *);
-	void yyerror(const char *p) { cerr << "\nInvalid regular expression\n"; }
+	void yyerror(const char *p) { cerr << "\nInvalid regular expression\n"; exit(0);}
 	
 	stack<Nfa *> nfas;
+	
+	bool isLineStart = false;
+	bool wasLineStart = false;
+	bool wasLineEnd = false;
+	bool isLineEnd = false;
+	int catCount = 0;
+	
+	void concatenate() {
+		if ( ! isLineStart && ! isLineEnd) {
+			Nfa *a = nfas.top();	
+			nfas.pop();
+			
+			nfas.top()->concatenate(a);
+			
+			if (catCount == 0 && ! wasLineStart)
+				nfas.top()->startAnywhere();
+				
+			catCount++;
+		}
+		else if (isLineStart) {
+			isLineStart = false;
+			wasLineStart = true;
+		}
+		else {
+			isLineEnd = false;
+			wasLineEnd = true;
+		}	
+	}
 %}
 
 %union {
@@ -34,11 +62,11 @@ extended_reg_exp   :                      ERE_branch
                    | extended_reg_exp '|' ERE_branch	{cout << "{OR}"; Nfa *a = nfas.top(); nfas.pop(); nfas.top()->unify(a);}
                    ;
 ERE_branch         :            ERE_expression
-                   | ERE_branch ERE_expression		{cout << "CAT"; Nfa *a = nfas.top(); nfas.pop(); nfas.top()->concatenate(a);}
+                   | ERE_branch ERE_expression		{cout << "CAT"; concatenate();}
                    ;
 ERE_expression     : one_char_or_coll_elem_ERE
-                   | '^'	{cout << "^";}
-                   | '$'	{cout << "$";}
+                   | '^'					{cout << "{ATSTART}"; isLineStart = true;}
+                   | '$'					{cout << "{ATEND}"; isLineEnd = true;}
                    | '(' extended_reg_exp ')'	{cout << "PAREN";}
                    | ERE_expression ERE_dupl_symbol
                    ;
@@ -103,7 +131,7 @@ int main(int argc, char** argv) {
 	
 	parse_string(argv[1]);
 	yyparse();
-	cout << nfas.size();
+	cout << endl << nfas.size() << endl;
 	nfas.top()->print();
 	nfas.top()->toDot("nfa.dot");
 	nfas.top()->evaluate(argv[2]);
