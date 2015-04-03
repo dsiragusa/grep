@@ -284,12 +284,7 @@ void Dfa::minimise_hopcroft(){
 		list< unordered_set<State*> > W;
 		P.push_back(finals);
 		P.push_back(notFinal);
-		if(finals.size() < notFinal.size()) {
-			W.push_back(finals);
-		}
-		else {
-			W.push_back(notFinal);
-		}
+		W.push_back(finals);
 		unordered_set<int> symbols=get_symbols();
 		unordered_set<State*> temp;
 		unordered_set<State*> intersection;
@@ -312,8 +307,6 @@ void Dfa::minimise_hopcroft(){
 					intersection = Intersection(setX,setY);
 					diff = difference(setY,setX);
 					if(!intersection.empty() && !diff.empty()) {
-						// replace setY with setX n setY and setY/setX in P TODO
-
 						P.remove(setY);
 						P.push_back(intersection);
 						P.push_back(diff);
@@ -335,7 +328,6 @@ void Dfa::minimise_hopcroft(){
 				}
 			}
 		}
-		cout<<P.size()<<" Size of P\n";
 
 		for(auto &Set: P) {
 			for(auto& l:Set) {
@@ -367,12 +359,20 @@ a->startAnywhere();
 a->concatenate(c);
 a->concatenate(a);
 a->concatenate(eps);
-a->concatenate(a);
-a->concatenate(c);
+a->concatenate(b);
+a->concatenate(d);
 a->concatenate(eps);
 a->concatenate(b);
 a->concatenate(e);
+
+a->concatenate(eps);
+a->concatenate(b);
+a->concatenate(d);
+a->concatenate(eps);
+a->startAnywhere();
+
 a->print();
+
 
 a->eliminate_eps();
 

@@ -136,12 +136,12 @@ unordered_set<State*> Nfa::getFinals() {
 
 bool Nfa::isAccessible(State* state) {
 	list<int> symbols;
-	unordered_set<State*> _states;
-	for (auto& _state : states) {
-		symbols = _state->get_symbols();
+	unordered_set<State*> accessible_states;
+	for (auto& current_state : states) {
+		symbols = current_state->get_symbols();
 		for (auto s : symbols) {
-			_states = _state->getTransitions(s);
-			if (_states.find(state) != _states.end())
+			accessible_states = current_state->getTransitions(s);
+			if (accessible_states.find(state) != accessible_states.end())
 				return true;
 		}
 	}
