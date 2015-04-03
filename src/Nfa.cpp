@@ -116,33 +116,31 @@ void Nfa::eliminate_eps() {
 					current->setTransition(symbol, e1);
 				}
 			}
-			if(!isAccessible(s)) {
+			if (!isAccessible(s)) {
 				states.erase(s);
 			}
-			current->delete_transition(State::EPS,s);
+			current->delete_transition(State::EPS, s);
 		}
-
-		states.insert(current);
+		//states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();
 		isEmpty = _stateEPS.empty();
 	}
-	if(isAccessible(final))
+	if (isAccessible(final)) {
 		finals.insert(final);
+	}
 }
 
-
-unordered_set<State*> Nfa::getFinals(){
+unordered_set<State*> Nfa::getFinals() {
 	return finals;
 }
-
 
 bool Nfa::isAccessible(State* state) {
 	list<int> symbols;
 	unordered_set<State*> _states;
 	for (auto& _state : states) {
-		symbols = state->get_symbols();
+		symbols = _state->get_symbols();
 		for (auto s : symbols) {
-			_states = state->getTransitions(s);
+			_states = _state->getTransitions(s);
 			if (_states.find(state) != _states.end())
 				return true;
 		}
@@ -264,27 +262,26 @@ State * Nfa::getFinal() {
 }
 
 int Nfa::rec_evaluate_second(string word, State* state) {
-	if(finals.size()>0) {
-		for(auto& f: finals) {
-			final =f;
-			if(rec_evaluate(word,state)==ACCEPT)
+	if (finals.size() > 0) {
+		for (auto& f : finals) {
+			final = f;
+			if (rec_evaluate(word, state) == ACCEPT)
 				return ACCEPT;
 		}
 		return REJECT;
 	} else
-		return rec_evaluate(word,state);
+		return rec_evaluate(word, state);
 }
 
 void Nfa::print_finals() {
-	cout<<", final:  ";
-	if(finals.size()>0) {
-		for(auto& f:finals){
-			cout<< f->getId()<< " , ";
+	cout << ", final:  ";
+	if (finals.size() > 0) {
+		for (auto& f : finals) {
+			cout << f->getId() << " , ";
 		}
-		cout<<"\n";
+		cout << "\n";
 	} else {
-		cout<< final->getId()
-					<< "\n";
+		cout << final->getId() << "\n";
 	}
 }
 
@@ -314,19 +311,19 @@ void Nfa::toDot(char const *fileName) {
 }
 
 /*
-int main() {
-	Nfa *a = new Nfa('a');
-	Nfa *b = new Nfa('b');
-	Nfa *c = new Nfa('c');
-	Nfa *d = new Nfa('d');
-	a->concatenate(b);
-	a->concatenate(c);
-	a->concatenate(d);
-	a->toDot("test.dot");
-	a->print();
-	Nfa *e = new Nfa(a);
-	e->print();
-	a->toDot("copy.dot");
-	//a->apply_cardinality(2, 4);
-}
-*/
+ int main() {
+ Nfa *a = new Nfa('a');
+ Nfa *b = new Nfa('b');
+ Nfa *c = new Nfa('c');
+ Nfa *d = new Nfa('d');
+ a->concatenate(b);
+ a->concatenate(c);
+ a->concatenate(d);
+ a->toDot("test.dot");
+ a->print();
+ Nfa *e = new Nfa(a);
+ e->print();
+ a->toDot("copy.dot");
+ //a->apply_cardinality(2, 4);
+ }
+ */

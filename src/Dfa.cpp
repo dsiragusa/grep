@@ -284,7 +284,12 @@ void Dfa::minimise_hopcroft(){
 		list< unordered_set<State*> > W;
 		P.push_back(finals);
 		P.push_back(notFinal);
-		W.push_back(finals);
+		if(finals.size() < notFinal.size()) {
+			W.push_back(finals);
+		}
+		else {
+			W.push_back(notFinal);
+		}
 		unordered_set<int> symbols=get_symbols();
 		unordered_set<State*> temp;
 		unordered_set<State*> intersection;
@@ -330,6 +335,15 @@ void Dfa::minimise_hopcroft(){
 				}
 			}
 		}
+		cout<<P.size()<<" Size of P\n";
+
+		for(auto &Set: P) {
+			for(auto& l:Set) {
+				cout<<l->getId()<< ", ";
+			}
+			cout<<"\n";
+		}
+
 	}
 	isMinimal=true;
 }
@@ -341,11 +355,23 @@ Nfa *a = new Nfa('a');
 Nfa *b = new Nfa('b');
 Nfa *c = new Nfa('c');
 
-a->concatenate(b);
-a->concatenate(c);
-a->startAnywhere();
-a->endAnywhere();
 
+Nfa *d = new Nfa('d');
+Nfa *eps = new Nfa(State::EPS);
+Nfa *e = new Nfa('e');
+
+b->concatenate(c);
+a->concatenate(b);
+a->startAnywhere();
+//a->endAnywhere();
+a->concatenate(c);
+a->concatenate(a);
+a->concatenate(eps);
+a->concatenate(a);
+a->concatenate(c);
+a->concatenate(eps);
+a->concatenate(b);
+a->concatenate(e);
 a->print();
 
 a->eliminate_eps();
@@ -354,5 +380,5 @@ a->print();
 
 Dfa *dfa = new Dfa(a);
 dfa->print();
-
+dfa->minimise_hopcroft();
 }
