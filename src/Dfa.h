@@ -21,6 +21,9 @@ public:
 	virtual ~Dfa();
 	void print();
 	void minimise_hopcroft();
+	int evaluate(string);
+	int rec_evaluate(string, State *, State*);
+	int rec_evaluate_second(string,State*);
 
 private:
 	unordered_set<State *> states;

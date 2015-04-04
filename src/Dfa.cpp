@@ -102,6 +102,47 @@ unordered_set<int> Dfa::get_symbols() {
 	return symbols;
 }
 
+int Dfa::evaluate(string in) {
+	int result = rec_evaluate_second(in, initial);
+	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
+	return result;
+}
+
+int Dfa::rec_evaluate(string in, State *state, State* final) {
+	if (in.length() == 0) {
+		cout << "empty string: state " << state->getId() << "\n";
+		if (state == final)
+			return ACCEPT;
+
+		for (auto& eps_state : state->getTransitions(State::EPS))
+			if (rec_evaluate(in, eps_state,final) == ACCEPT)
+				return ACCEPT;
+
+		return REJECT;
+	}
+
+	for (auto& next_state : state->getTransitions(in.at(0)))
+		if (rec_evaluate(in.substr(1), next_state,final) == ACCEPT)
+			return ACCEPT;
+
+	for (auto& eps_state : state->getTransitions(State::EPS))
+		if (rec_evaluate(in, eps_state,final) == ACCEPT)
+			return ACCEPT;
+
+	for (auto& next_state : state->getTransitions(State::DOT))
+		if (rec_evaluate(in.substr(1), next_state,final) == ACCEPT)
+			return ACCEPT;
+
+	return REJECT;
+}
+
+int Dfa::rec_evaluate_second(string word, State* state) {
+		for (auto& f : finals) {
+			if (rec_evaluate(word, state,f) == ACCEPT)
+				return ACCEPT;
+		}
+		return REJECT;
+}
 /*
  * 
  * 

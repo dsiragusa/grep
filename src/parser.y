@@ -137,22 +137,17 @@ int main(int argc, char** argv) {
 	nfas.top()->evaluate(argv[2]);
 	nfas.top()->eliminate_eps();
 	nfas.top()->print();
+	Nfa* top = nfas.top();
 	
-	Nfa* top  = new Nfa('a');
-	
-	Nfa* b  = new Nfa('b');
-	top->apply_cardinality(KLEENE_STAR);
-	b->apply_cardinality(KLEENE_STAR);
-	top->concatenate(b);
 	top->print();
 	top->toDot("nfa.dot");
-	top->evaluate(argv[2]);
 	top->eliminate_eps();
 	top->print();
 	Dfa* dfa  = new Dfa(top);
 	dfa->print();
 	dfa->minimise_hopcroft();
 	dfa->print();
+	dfa->evaluate(argv[2]);
 }
 
 
