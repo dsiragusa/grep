@@ -185,18 +185,29 @@ int main(int argc, char** argv) {
 	
 	Nfa* top = nfas.top();
 	top->toDot("nfa.dot");
+	top->print();
+	
 	top->evaluate(argv[2]);
 	
 	top->eliminate_eps();
 	top->print();
+	
+	top->toDot("nfa2.dot");
+	
 	top->evaluate(argv[2]);
 
 	
 	Dfa* dfa = new Dfa(top);
 
+	dfa->toDot("dfa.dot");
+	dfa->print();
 	dfa->minimise_hopcroft();
-
+	
+	dfa->toDot("dfa2.dot");
 	dfa->evaluate(argv[2]);
+	dfa->print();
+	
+	dfa->evaluate("aaabaaabbb");
 }
 
 

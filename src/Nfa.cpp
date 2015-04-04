@@ -92,13 +92,15 @@ void Nfa::eliminate_eps() {
 	State* current;
 	list<int> symbols;
 
+	finals.insert(final);
+
 	while (!_stateEPS.empty()) {
 		current = _stateEPS.front();
 		_stateEPS.pop_front();
 		_states = current->getTransitions(State::EPS);
 		for (auto& s : _states) {
 			symbols = s->get_symbols();
-			if (s == final) {
+			if (finals.find(s)!=finals.end()) {
 				if (finals.find(current) == finals.end()) {
 					finals.insert(current);
 				}
@@ -119,8 +121,8 @@ void Nfa::eliminate_eps() {
 		//states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();
 	}
-	if (isAccessible(final)) {
-		finals.insert(final);
+	if (!isAccessible(final)) {
+		finals.erase(final);
 	}
 }
 
