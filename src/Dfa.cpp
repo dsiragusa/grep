@@ -158,7 +158,6 @@ unordered_set<State *> Union(unordered_set<State *> first,
 	return result;
 }
 
-
 unordered_set<State *> Intersection(unordered_set<State *> first,
 		unordered_set<State *> second) {
 	unordered_set<State *> result = unordered_set<State *>();
@@ -200,63 +199,61 @@ unordered_set<State*> Dfa::unreachable_states() {
 				}
 			}
 		}
-		new_states = difference(temp,reachable_states);
-		reachable_states = Union (reachable_states,new_states);
-} while (temp != new_states);
-	return difference (states,reachable_states);
+		new_states = difference(temp, reachable_states);
+		reachable_states = Union(reachable_states, new_states);
+	} while (temp != new_states);
+	return difference(states, reachable_states);
 }
 
-bool  canTransitToStateOn(State* current , int symbol,unordered_set<State*> B) {
+bool canTransitToStateOn(State* current, int symbol, unordered_set<State*> B) {
 	unordered_set<State*> reachable_states = current->getTransitions(symbol);
-	for(auto& state:reachable_states) {
-		if(B.find(state)!=B.end()) {
+	for (auto& state : reachable_states) {
+		if (B.find(state) != B.end()) {
 			return true;
 		}
 	}
 	return false;
 }
 
-
 /*
  *
  *
-P := {F, Q \ F};
-W := {F};
-while (W is not empty) do
-     choose and remove a set A from W
-     for each c in Σ do
-          let X be the set of states for which a transition on c leads to a state in A
-          for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
-               replace Y in P by the two sets X ∩ Y and Y \ X
-               if Y is in W
-                    replace Y in W by the same two sets
-               else
-                    if |X ∩ Y| <= |Y \ X|
-                         add X ∩ Y to W
-                    else
-                         add Y \ X to W
-          end;
-     end;
-end;
+ P := {F, Q \ F};
+ W := {F};
+ while (W is not empty) do
+ choose and remove a set A from W
+ for each c in Σ do
+ let X be the set of states for which a transition on c leads to a state in A
+ for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
+ replace Y in P by the two sets X ∩ Y and Y \ X
+ if Y is in W
+ replace Y in W by the same two sets
+ else
+ if |X ∩ Y| <= |Y \ X|
+ add X ∩ Y to W
+ else
+ add Y \ X to W
+ end;
+ end;
+ end;
  *
  *
  */
 
-bool equals (unordered_set<State*> first, unordered_set<State*> second) {
-	if(first.size()!=second.size()){
+bool equals(unordered_set<State*> first, unordered_set<State*> second) {
+	if (first.size() != second.size()) {
 		return false;
-	}
-	else {
+	} else {
 		bool exist;
-		for(auto& f:first) {
-			exist= false;
-			for(auto& s:second){
-				if(s==f) {
-					exist=true;
+		for (auto& f : first) {
+			exist = false;
+			for (auto& s : second) {
+				if (s == f) {
+					exist = true;
 					break;
 				}
 			}
-			if(!exist) {
+			if (!exist) {
 				return false;
 			}
 		}
@@ -264,63 +261,61 @@ bool equals (unordered_set<State*> first, unordered_set<State*> second) {
 	}
 }
 
-bool contains ( list<unordered_set<State*>> liste,unordered_set<State*> Set) {
-	if(liste.empty())
+bool contains(list<unordered_set<State*>> liste, unordered_set<State*> Set) {
+	if (liste.empty())
 		return false;
-	for(auto& s:liste) {
-		if(equals(s,Set))
+	for (auto& s : liste) {
+		if (equals(s, Set))
 			return true;
 	}
 	return false;
 }
 
-void Dfa::minimise_hopcroft(){
-	if(isMinimal)
+void Dfa::minimise_hopcroft() {
+	if (isMinimal)
 		return;
 	else {
-		unordered_set<State*> notFinal= difference(states,finals);
-		list< unordered_set<State*> > P;
-		list< unordered_set<State*> > __P;
-		list< unordered_set<State*> > W;
-		P.push_back(finals);
-		P.push_back(notFinal);
+		unordered_set<State*> notFinal = difference(states, finals);
+		list<unordered_set<State*> > P;
+		list<unordered_set<State*> > __P;
+		list<unordered_set<State*> > W;
+		P.push_front(finals);
+		P.push_front(notFinal);
 		W.push_back(finals);
-		unordered_set<int> symbols=get_symbols();
+		unordered_set<int> symbols = get_symbols();
 		unordered_set<State*> temp;
 		unordered_set<State*> intersection;
 		unordered_set<State*> diff;
 
 		unordered_set<State*> setX;
-		while(!W.empty()) {
+		while (!W.empty()) {
 			temp = W.front();
 			W.pop_front();
 
-			for(auto& s:symbols ) {
+			for (auto& s : symbols) {
 				unordered_set<State*> setX = unordered_set<State*>();
-				for(auto& current:states) {
-					if(canTransitToStateOn(current,s,temp)) {
+				for (auto& current : states) {
+					if (canTransitToStateOn(current, s, temp)) {
 						setX.insert(current);
 					}
 				}
-				__P = list< unordered_set<State*> >(P);
-				for(auto& setY:__P) {
-					intersection = Intersection(setX,setY);
-					diff = difference(setY,setX);
-					if(!intersection.empty() && !diff.empty()) {
+				__P = list<unordered_set<State*> >(P);
+				for (auto& setY : __P) {
+					intersection = Intersection(setX, setY);
+					diff = difference(setY, setX);
+					if (!intersection.empty() && !diff.empty()) {
 						P.remove(setY);
-						P.push_back(intersection);
-						P.push_back(diff);
+						P.push_front(intersection);
+						P.push_front(diff);
 
-						if(contains(W,setY)) {
+						if (contains(W, setY)) {
 							W.remove(setY);
 							W.push_back(intersection);
 							W.push_back(diff);
-						}
-						else {
-							if(intersection.size()<=diff.size()) {
+						} else {
+							if (intersection.size() <= diff.size()) {
 								W.push_back(intersection);
-							}
-							else {
+							} else {
 								W.push_back(diff);
 							}
 						}
@@ -328,57 +323,112 @@ void Dfa::minimise_hopcroft(){
 				}
 			}
 		}
+		initializeStatesAfterMinimisation(P);
+	}
+	isMinimal = true;
+}
 
-		for(auto &Set: P) {
-			for(auto& l:Set) {
-				cout<<l->getId()<< ", ";
-			}
-			cout<<"\n";
+void Dfa::initializeStatesAfterMinimisation(
+		list<unordered_set<State*> > _list) {
+
+	int size = _list.size();
+	State* result[size];
+	unordered_set<State*> setOFfinals;
+	if (size > 0) {
+		State* state;
+		for (int i = 0; i < size; i++) {
+			result[i] = new State();
 		}
 
+		auto list_temp = list<unordered_set<State*> >();
+		for (auto& currentSet : _list) {
+			list_temp.push_back(currentSet);
+		}
+
+		bool initialFound = false;
+		unordered_set<State*>::iterator it;
+		map<int, unordered_set<State *> > old_trans;
+		int counter = 0;
+		for (auto& currentSet : _list) {
+			if (currentSet.size() > 0) {
+				state = result[counter++];
+			}
+			if (!initialFound) {
+				auto init = currentSet.find(initial);
+				if (init != currentSet.end()) {
+					initialFound = true;
+					initial= state;
+				}
+			}
+			if (currentSet.size() > 0) {
+				it = currentSet.begin();
+				auto s = *it;
+				old_trans = s->getTransitions();
+				if (finals.find(s) != finals.end()) {
+					if (setOFfinals.find(state) == setOFfinals.end()) {
+						setOFfinals.insert(state);
+					}
+				}
+				for (auto& transition : old_trans) {
+					auto exist = true;
+					auto rank = 0;
+					auto symbol = transition.first;
+					auto nextState = *(transition.second.begin());
+					for (auto& nextSet : list_temp) {
+						if (nextSet.find(nextState) != nextSet.end()) {
+							auto temp = result[rank];
+							state->setTransition(symbol, temp);
+						}
+						rank++;
+					}
+				}
+			}
+		}
+		unordered_set<State*> setOfresults;
+		for (int i = 0; i < size; i++) {
+			setOfresults.insert(result[i]);
+		}
+		states = setOfresults;
+		finals = setOFfinals;
 	}
-	isMinimal=true;
 }
+/*
+ int main() {
+ Nfa *a = new Nfa('a');
+ Nfa *b = new Nfa('b');
+ Nfa *c = new Nfa('c');
 
+ Nfa *d = new Nfa('d');
+ Nfa *eps = new Nfa(State::EPS);
+ Nfa *e = new Nfa('e');
 
+ b->concatenate(c);
+ a->concatenate(b);
+ a->startAnywhere();
+ a->endAnywhere();
+ a->concatenate(c);
+ a->concatenate(a);
+ a->concatenate(eps);
+ a->concatenate(b);
+ a->concatenate(d);
+ a->concatenate(eps);
+ a->concatenate(b);
+ a->concatenate(e);
 
-int main() {
-Nfa *a = new Nfa('a');
-Nfa *b = new Nfa('b');
-Nfa *c = new Nfa('c');
+ a->concatenate(eps);
+ a->concatenate(b);
+ a->concatenate(d);
+ a->concatenate(eps);
+ a->startAnywhere();
 
+ a->print();
 
-Nfa *d = new Nfa('d');
-Nfa *eps = new Nfa(State::EPS);
-Nfa *e = new Nfa('e');
+ a->eliminate_eps();
 
-b->concatenate(c);
-a->concatenate(b);
-a->startAnywhere();
-//a->endAnywhere();
-a->concatenate(c);
-a->concatenate(a);
-a->concatenate(eps);
-a->concatenate(b);
-a->concatenate(d);
-a->concatenate(eps);
-a->concatenate(b);
-a->concatenate(e);
+ a->print();
 
-a->concatenate(eps);
-a->concatenate(b);
-a->concatenate(d);
-a->concatenate(eps);
-a->startAnywhere();
-
-a->print();
-
-
-a->eliminate_eps();
-
-a->print();
-
-Dfa *dfa = new Dfa(a);
-dfa->print();
-dfa->minimise_hopcroft();
-}
+ Dfa *dfa = new Dfa(a);
+ dfa->print();
+ dfa->minimise_hopcroft();
+ dfa->print();
+ }*/

@@ -110,10 +110,12 @@ void Nfa::eliminate_eps() {
 					current->setTransition(symbol, e1);
 				}
 			}
-			if (!isAccessible(s)) {
-				states.erase(s);
-			}
 			current->delete_transition(State::EPS, s);
+			if (!isAccessible(s)) {
+				cout << "Not accessible" << s->getId() << "\n";
+				states.erase(s);
+				finals.erase(s);
+			}
 		}
 		//states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();

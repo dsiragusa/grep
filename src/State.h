@@ -34,6 +34,7 @@ public:
 	void print();
 	void toDot(FILE *);
 	list<int> get_symbols();
+	map<int, unordered_set<State *> > getTransitions();
 private:
 	static UniqueIdGenerator idGen;
 

@@ -15,7 +15,8 @@ State::State() {
 	id = idGen.getUniqueId();
 }
 
-void State::adaptTransitions(const State *toCopy, const map<State *, State *> *oldToNewStates) {
+void State::adaptTransitions(const State *toCopy,
+		const map<State *, State *> *oldToNewStates) {
 	for (auto& trans : toCopy->transitions) {
 		unordered_set<State *> newNextStates;
 		for (auto& nextState : trans.second) {
@@ -48,16 +49,20 @@ unordered_set<State *> State::getTransitions(int symbol) {
 
 list<int> State::get_symbols() {
 	list<int> symbols;
-	for(auto& t:transitions){
+	for (auto& t : transitions) {
 		symbols.push_back(t.first);
 	}
-	return	symbols;
+	return symbols;
 }
 void State::setTransition(int symbol, State *state) {
 	if (transitions.find(symbol) == transitions.end())
 		transitions.emplace(symbol, unordered_set<State *>());
 
 	transitions.find(symbol)->second.insert(state);
+}
+
+map<int, unordered_set<State *> > State::getTransitions() {
+	return transitions;
 }
 
 void State::print() {
@@ -77,15 +82,18 @@ void State::toDot(FILE *dotFile) {
 	for (auto& tr : transitions) {
 		int sy = tr.first;
 		for (auto& next : tr.second) {
-			fprintf(dotFile, "%d -> %d [label=\"%s\"];\n", getId(), next->getId(), getChar(sy).c_str());
+			fprintf(dotFile, "%d -> %d [label=\"%s\"];\n", getId(),
+					next->getId(), getChar(sy).c_str());
 		}
 	}
 }
 
-void State::delete_transition(int symbol,State* toDelete) {
+void State::delete_transition(int symbol, State* toDelete) {
 	auto transition = transitions.find(symbol);
 	if (transition == transitions.end())
 		return;
+
+	unordered_set<State *> temp;
 
 	transition->second.erase(toDelete);
 	if (transition->second.empty())

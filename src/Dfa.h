@@ -31,6 +31,7 @@ private:
 	void determinize(Nfa *);
 	void rec_determinize(Nfa *, map<set<State *>, State *> *, set<State *>);
 	void print_finals();
+	void initializeStatesAfterMinimisation(list<unordered_set<State*> >);
 	unordered_set<State *> unreachable_states();
 	unordered_set<int> get_symbols();
 };
