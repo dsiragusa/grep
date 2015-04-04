@@ -38,7 +38,6 @@ class Nfa {
 	Nfa(list<int>, bool);
 	virtual ~Nfa();
 
-	void startAnywhere();
 	void endAnywhere();
 	void concatenate(const Nfa *);
 	void unify(const Nfa *);
