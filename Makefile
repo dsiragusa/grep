@@ -12,10 +12,10 @@ nfa: obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o
 obj/%.o: src/%.cpp
 	$(CC) -c $< -o $@ $(C11FLAG)
 
-grep: src/lex.l src/parser.y obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o obj/Dfa.o
+grep: src/lex.l src/parser.y obj/State.o obj/UniqueIdGenerator.o obj/Nfa.o obj/Dfa.o obj/Tree.o
 	flex src/lex.l
 	bison -d -r all src/parser.y
-	$(CC) lex.yy.c parser.tab.c obj/State.o obj/UniqueIdGenerator.o obj/Dfa.o obj/Nfa.o -o $@ $(C11FLAG) -ll
+	$(CC) lex.yy.c parser.tab.c obj/State.o obj/UniqueIdGenerator.o obj/Dfa.o obj/Nfa.o  obj/Tree.o -o $@ $(C11FLAG) -ll
 
 clean:
 	rm -rf bin/* obj/*

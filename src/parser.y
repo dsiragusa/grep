@@ -4,6 +4,8 @@
 	#include <stack>
 	#include "src/Nfa.h"
 	#include "src/Dfa.h"
+	#include "src/Tree.h"
+	
 	using namespace std;
 	
 	int yylex();
@@ -16,8 +18,10 @@
 	stack<State *> startingAnywhere;
 	int orCount = 0;
 	
+	stack<Tree *> endPoints;
+	Tree *lastNode;
+	
 	bool isLineStart = false;
-	bool wasLineEnd = false;
 	bool isLineEnd = false;
 	
 	void concatenate() {
@@ -27,10 +31,15 @@
 			
 			nfas.top()->concatenate(a);
 			startingAnywhere.pop();
+			
 			while (orCount > 0) {
 				startingAnywhere.pop();
 				orCount--;
 			}
+			
+			endPoints.pop();
+			endPoints.pop();
+			endPoints.push(lastNode);
 		}
 		else if (isLineStart) {
 			isLineStart = false;
@@ -38,7 +47,7 @@
 		}
 		else {
 			isLineEnd = false;
-			wasLineEnd = true;
+			lastNode->setLineEnd();
 		}		
 	}
 	
@@ -46,7 +55,25 @@
 		orCount++;
 		Nfa *a = nfas.top();
 		nfas.pop();
-		nfas.top()->unify(a);		
+		nfas.top()->unify(a);
+		
+		Tree *r = endPoints.top();
+		endPoints.pop();
+		Tree *l = endPoints.top();
+		endPoints.pop();
+		Tree *node = new Tree(l, r);
+		endPoints.push(node);
+		lastNode = node;
+	}
+	
+	void create(int symbol) {
+		Nfa *nfa = new Nfa(symbol);
+		nfas.push(nfa);
+		startingAnywhere.push(nfa->getInitial());
+		
+		Tree *leaf = new Tree(nfa->getFinal());
+		lastNode = leaf;
+		endPoints.push(leaf);
 	}
 %}
 
@@ -78,9 +105,9 @@ ERE_expression     : one_char_or_coll_elem_ERE
                    | '(' extended_reg_exp ')'	{cout << "PAREN";}
                    | ERE_expression ERE_dupl_symbol
                    ;
-one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]"; nfas.push(new Nfa($1)); startingAnywhere.push(nfas.top()->getInitial());}
-                   | QUOTED_CHAR		{cout << "["<<$1<<"]"; nfas.push(new Nfa($1)); startingAnywhere.push(nfas.top()->getInitial());}
-                   | '.'				{cout << "DOT"; nfas.push(new Nfa(State::DOT)); startingAnywhere.push(nfas.top()->getInitial());}
+one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]"; create($1);}
+                   | QUOTED_CHAR		{cout << "["<<$1<<"]"; create($1);}
+                   | '.'				{cout << "DOT"; create(State::DOT);}
                    | bracket_expression
                    ;
 ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->apply_cardinality(KLEENE_STAR);}
@@ -142,27 +169,33 @@ int main(int argc, char** argv) {
 	cout << endl << nfas.size() << endl;
 	
 	cout << endl << startingAnywhere.size() << endl;
+	cout << endl << endPoints.size() << endl;
 	
 	while ( ! startingAnywhere.empty()) {
 		startingAnywhere.top()->setTransition(State::DOT, startingAnywhere.top());
 		startingAnywhere.pop();
 	}
 	
-	nfas.top()->print();
-	nfas.top()->toDot("nfa.dot");
-	nfas.top()->evaluate(argv[2]);
-	nfas.top()->eliminate_eps();
-	nfas.top()->print();
-	Nfa* top = nfas.top();
+	while ( ! endPoints.empty()) {
+		Tree *t = endPoints.top();
+		t->applyEndRules();
+		endPoints.pop();
+	}
+		
 	
-	top->print();
+	Nfa* top = nfas.top();
 	top->toDot("nfa.dot");
+	top->evaluate(argv[2]);
+	
 	top->eliminate_eps();
 	top->print();
-	Dfa* dfa  = new Dfa(top);
-	dfa->print();
+	top->evaluate(argv[2]);
+
+	
+	Dfa* dfa = new Dfa(top);
+
 	dfa->minimise_hopcroft();
-	dfa->print();
+
 	dfa->evaluate(argv[2]);
 }
 
