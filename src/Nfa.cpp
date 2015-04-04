@@ -55,11 +55,6 @@ Nfa::Nfa(const Nfa *toCopy) {
 	final = oldToNewStates.find(toCopy->final)->second;
 }
 
-//should be called whenever $ is not present
-void Nfa::startAnywhere() {
-	initial->setTransition(State::DOT, initial);
-}
-
 //should be called whenever ^ is not present
 void Nfa::endAnywhere() {
 	final->setTransition(State::DOT, final);
@@ -94,11 +89,10 @@ void Nfa::eliminate_eps() {
 	unordered_set<State*> _states;
 	unordered_set<State*> _states1;
 	list<State*> _stateEPS = getStatesWithEpSTransition();
-	bool isEmpty = _stateEPS.empty();
 	State* current;
 	list<int> symbols;
 
-	while (!isEmpty) {
+	while (!_stateEPS.empty()) {
 		current = _stateEPS.front();
 		_stateEPS.pop_front();
 		_states = current->getTransitions(State::EPS);
@@ -124,7 +118,6 @@ void Nfa::eliminate_eps() {
 		}
 		//states.insert(current);
 		_stateEPS = getStatesWithEpSTransition();
-		isEmpty = _stateEPS.empty();
 	}
 	if (isAccessible(final)) {
 		finals.insert(final);
