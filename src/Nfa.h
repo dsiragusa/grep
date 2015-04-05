@@ -12,6 +12,7 @@
 #include <fstream>
 #include <unordered_set>
 #include <set>
+#include <forward_list>
 #include "State.h"
 
 using namespace std;
@@ -35,7 +36,7 @@ class Nfa {
 
 	public:
 	Nfa(int);
-	Nfa(list<int>, bool);
+	Nfa(forward_list<int>, bool);
 	virtual ~Nfa();
 
 	void endAnywhere();

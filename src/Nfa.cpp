@@ -16,7 +16,7 @@ Nfa::Nfa(int symbol) {
 	initial->setTransition(symbol, final);
 }
 
-Nfa::Nfa(list<int> symbols, bool areNegated) {
+Nfa::Nfa(forward_list<int> symbols, bool areMatching) {
 	initial = new State();
 	states.insert(initial);
 	final = new State();
@@ -26,7 +26,7 @@ Nfa::Nfa(list<int> symbols, bool areNegated) {
 		initial->setTransition(symbol, final);
 	}
 
-	if (areNegated) {
+	if ( ! areMatching) {
 		final = new State();
 		states.insert(final);
 		initial->setTransition(State::DOT, final);
@@ -226,13 +226,19 @@ int Nfa::rec_evaluate(string in, State *state) {
 		return REJECT;
 	}
 
-	for (auto& next_state : state->getTransitions(in.at(0)))
+	bool symbolHasTrans = false;
+	for (auto& next_state : state->getTransitions(in.at(0))) {
+		symbolHasTrans = true;
 		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
+	}
 
 	for (auto& eps_state : state->getTransitions(State::EPS))
 		if (rec_evaluate(in, eps_state) == ACCEPT)
 			return ACCEPT;
+
+	if (symbolHasTrans)
+		return REJECT;
 
 	for (auto& next_state : state->getTransitions(State::DOT))
 		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)

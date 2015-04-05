@@ -1,5 +1,8 @@
 %{
 	#include "parser.tab.h"
+	
+	#include <iostream>
+	using namespace std;
 %}
 
 %x DUP
@@ -13,36 +16,37 @@ ORD [^[\()|$^.{*+?]
 
 %%
 \n
-\{		{BEGIN DUP; return '{';}
-<DUP>[0-9]+	{yylval.num = atoi(yytext); return DUP_COUNT;}
-<DUP>,		{return ',';}
+\{				{BEGIN DUP; return '{';}
+<DUP>[0-9]+		{yylval.num = atoi(yytext); return DUP_COUNT;}
+<DUP>,			{return ',';}
 <DUP>[ \t]+
-<DUP>\}	{BEGIN 0; return '}';}
+<DUP>\}			{BEGIN 0; return '}';}
 
-\[		{BEGIN BRA_NEG; return '[';}
-<BRA_NEG>\^	{BEGIN BRA_FIRST; return '^';}
-<BRA_NEG>-	{BEGIN BRA; yylval.c = '-'; return COLL_ELEM;}
-<BRA_NEG>\]	{BEGIN BRA; yylval.c = ']'; return COLL_ELEM;}
+\[				{BEGIN BRA_NEG; return '[';}
+<BRA_NEG>\^		{BEGIN BRA_FIRST; return '^';}
+<BRA_NEG>-		{BEGIN BRA; yylval.c = '-'; return COLL_ELEM;}
+<BRA_NEG>\]		{BEGIN BRA; yylval.c = ']'; return COLL_ELEM;}
 <BRA_NEG>\[:	{BEGIN BRA_COL; return Open_colon;}
-<BRA_NEG>.	{BEGIN BRA; yylval.c = yytext[0]; return COLL_ELEM;}
+<BRA_NEG>.		{BEGIN BRA; yylval.c = yytext[0]; return COLL_ELEM;}
 
 <BRA_FIRST>-	{BEGIN BRA; yylval.c = '-'; return COLL_ELEM;}
 <BRA_FIRST>\]	{BEGIN BRA; yylval.c = ']'; return COLL_ELEM;}
 <BRA_FIRST>\[:	{BEGIN BRA_COL; return Open_colon;}
 <BRA_FIRST>.	{BEGIN BRA; yylval.c = yytext[0]; return COLL_ELEM;}
 
-<BRA_COL>(alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print|punct|space|upper|word|xdigit)	{yylval.s = yytext; return class_name;}
-<BRA_COL>:]	{BEGIN BRA; return Colon_close;}
+<BRA_COL>(alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print|punct|space|upper|word|xdigit)	{yylval.s = (char *) malloc(sizeof(char) * (yyleng+1)); strncpy(yylval.s, yytext, yyleng); return class_name;}
+<BRA_COL>:]		{BEGIN BRA; return Colon_close;}
 
-<BRA>-	{return '-';}
-<BRA>\]		{BEGIN 0; return ']';}
-<BRA>\[:	{BEGIN BRA_COL; return Open_colon;}
+<BRA>-/\]		{yylval.c = '-'; return COLL_ELEM;}
+<BRA>-			{return '-';}
+<BRA>\]			{BEGIN 0; return ']';}
+<BRA>\[:		{BEGIN BRA_COL; return Open_colon;}
 
-<BRA>.	{yylval.c = yytext[0]; return COLL_ELEM;}
+<BRA>.			{yylval.c = yytext[0]; return COLL_ELEM;}
 
-{ORD}	{yylval.c = yytext[0]; return ORD_CHAR;}
-{QUOTED}	{yylval.c = yytext[0]; return QUOTED_CHAR;}
-.		{return yytext[0];}
+{ORD}			{yylval.c = yytext[0]; return ORD_CHAR;}
+{QUOTED}		{yylval.c = yytext[0]; return QUOTED_CHAR;}
+.				{return yytext[0];}
 %%
 
 void parse_string(char const *str) {
