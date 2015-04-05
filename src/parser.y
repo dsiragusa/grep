@@ -313,26 +313,34 @@ int main(int argc, char** argv) {
 		exit(0);
 	}
 	
-	initMapClassToApply();
-	parse_string(argv[1]);
-	yyparse();
-	cout << endl << nfas.size() << endl;
 	
-	cout << endl << startPoints.size() << endl;
-	cout << endl << endPoints.size() << endl;
+	if (strlen(argv[1]) > 0) {
+		initMapClassToApply();
+		parse_string(argv[1]);
+		yyparse();
+		cout << endl << nfas.size() << endl;
 	
-	while ( ! startPoints.empty()) {
-		Tree *t = startPoints.top();
-		t->applyStartRules();
-		startPoints.pop();
+		cout << endl << startPoints.size() << endl;
+		cout << endl << endPoints.size() << endl;
+	
+		while ( ! startPoints.empty()) {
+			Tree *t = startPoints.top();
+			t->applyStartRules();
+			startPoints.pop();
+		}
+	
+		while ( ! endPoints.empty()) {
+			Tree *t = endPoints.top();
+			t->applyEndRules();
+			endPoints.pop();
+		}
 	}
-	
-	while ( ! endPoints.empty()) {
-		Tree *t = endPoints.top();
-		t->applyEndRules();
-		endPoints.pop();
+	else {
+		Nfa *nfa = new Nfa(State::DOT);
+		nfa->getInitial()->setTransition(State::DOT, nfa->getInitial());
+		nfa->getFinal()->setTransition(State::DOT, nfa->getFinal());
+		nfas.push(nfa);
 	}
-		
 	
 	Nfa* thompson = nfas.top();
 	thompson->toDot("thompson.dot");
