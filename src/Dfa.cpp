@@ -115,33 +115,33 @@ int Dfa::rec_evaluate(string in, State *state, State* final) {
 			return ACCEPT;
 
 		for (auto& eps_state : state->getTransitions(State::EPS))
-			if (rec_evaluate(in, eps_state,final) == ACCEPT)
+			if (rec_evaluate(in, eps_state, final) == ACCEPT)
 				return ACCEPT;
 
 		return REJECT;
 	}
 
 	for (auto& next_state : state->getTransitions(in.at(0)))
-		if (rec_evaluate(in.substr(1), next_state,final) == ACCEPT)
+		if (rec_evaluate(in.substr(1), next_state, final) == ACCEPT)
 			return ACCEPT;
 
 	for (auto& eps_state : state->getTransitions(State::EPS))
-		if (rec_evaluate(in, eps_state,final) == ACCEPT)
+		if (rec_evaluate(in, eps_state, final) == ACCEPT)
 			return ACCEPT;
 
 	for (auto& next_state : state->getTransitions(State::DOT))
-		if (rec_evaluate(in.substr(1), next_state,final) == ACCEPT)
+		if (rec_evaluate(in.substr(1), next_state, final) == ACCEPT)
 			return ACCEPT;
 
 	return REJECT;
 }
 
 int Dfa::rec_evaluate_second(string word, State* state) {
-		for (auto& f : finals) {
-			if (rec_evaluate(word, state,f) == ACCEPT)
-				return ACCEPT;
-		}
-		return REJECT;
+	for (auto& f : finals) {
+		if (rec_evaluate(word, state, f) == ACCEPT)
+			return ACCEPT;
+	}
+	return REJECT;
 }
 /*
  * 
@@ -256,31 +256,6 @@ bool canTransitToStateOn(State* current, int symbol, unordered_set<State*> B) {
 	return false;
 }
 
-/*
- *
- *
- P := {F, Q \ F};
- W := {F};
- while (W is not empty) do
- choose and remove a set A from W
- for each c in Σ do
- let X be the set of states for which a transition on c leads to a state in A
- for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
- replace Y in P by the two sets X ∩ Y and Y \ X
- if Y is in W
- replace Y in W by the same two sets
- else
- if |X ∩ Y| <= |Y \ X|
- add X ∩ Y to W
- else
- add Y \ X to W
- end;
- end;
- end;
- *
- *
- */
-
 bool equals(unordered_set<State*> first, unordered_set<State*> second) {
 	if (first.size() != second.size()) {
 		return false;
@@ -312,6 +287,32 @@ bool contains(list<unordered_set<State*>> liste, unordered_set<State*> Set) {
 	return false;
 }
 
+
+
+/*
+ *
+ *
+ P := {F, Q \ F};
+ W := {F};
+ while (W is not empty) do
+ choose and remove a set A from W
+ for each c in Σ do
+ let X be the set of states for which a transition on c leads to a state in A
+ for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
+ replace Y in P by the two sets X ∩ Y and Y \ X
+ if Y is in W
+ replace Y in W by the same two sets
+ else
+ if |X ∩ Y| <= |Y \ X|
+ add X ∩ Y to W
+ else
+ add Y \ X to W
+ end;
+ end;
+ end;
+ *
+ *
+ */
 void Dfa::minimise_hopcroft() {
 	if (isMinimal)
 		return;
@@ -331,8 +332,6 @@ void Dfa::minimise_hopcroft() {
 		unordered_set<State*> setX;
 		while (!W.empty()) {
 			temp = W.front();
-			W.pop_front();
-
 			for (auto& s : symbols) {
 				unordered_set<State*> setX = unordered_set<State*>();
 				for (auto& current : states) {
@@ -363,6 +362,7 @@ void Dfa::minimise_hopcroft() {
 					}
 				}
 			}
+			W.pop_front();
 		}
 		initializeStatesAfterMinimisation(P);
 	}
@@ -398,7 +398,7 @@ void Dfa::initializeStatesAfterMinimisation(
 				auto init = currentSet.find(initial);
 				if (init != currentSet.end()) {
 					initialFound = true;
-					initial= state;
+					initial = state;
 				}
 			}
 			if (currentSet.size() > 0) {
@@ -410,8 +410,8 @@ void Dfa::initializeStatesAfterMinimisation(
 						setOFfinals.insert(state);
 					}
 				}
+
 				for (auto& transition : old_trans) {
-					auto exist = true;
 					auto rank = 0;
 					auto symbol = transition.first;
 					auto nextState = *(transition.second.begin());
@@ -433,43 +433,13 @@ void Dfa::initializeStatesAfterMinimisation(
 		finals = setOFfinals;
 	}
 }
-/*
- int main() {
- Nfa *a = new Nfa('a');
- Nfa *b = new Nfa('b');
- Nfa *c = new Nfa('c');
 
- Nfa *d = new Nfa('d');
- Nfa *eps = new Nfa(State::EPS);
- Nfa *e = new Nfa('e');
-
- b->concatenate(c);
- a->concatenate(b);
- a->startAnywhere();
- a->endAnywhere();
- a->concatenate(c);
- a->concatenate(a);
- a->concatenate(eps);
- a->concatenate(b);
- a->concatenate(d);
- a->concatenate(eps);
- a->concatenate(b);
- a->concatenate(e);
-
- a->concatenate(eps);
- a->concatenate(b);
- a->concatenate(d);
- a->concatenate(eps);
- a->startAnywhere();
-
- a->print();
-
- a->eliminate_eps();
-
- a->print();
-
- Dfa *dfa = new Dfa(a);
- dfa->print();
- dfa->minimise_hopcroft();
- dfa->print();
- }*/
+void Dfa::toDot(char const *fileName) {
+	FILE *dotFile = fopen(fileName, "w");
+	fprintf(dotFile, "digraph nfa{\n");
+	for (auto& state : states) {
+		state->toDot(dotFile);
+	}
+	fprintf(dotFile, "}");
+	fclose(dotFile);
+}

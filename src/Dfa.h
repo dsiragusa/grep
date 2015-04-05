@@ -24,7 +24,7 @@ public:
 	int evaluate(string);
 	int rec_evaluate(string, State *, State*);
 	int rec_evaluate_second(string,State*);
-
+	void toDot(char const *fileName);
 private:
 	unordered_set<State *> states;
 	State *initial;
