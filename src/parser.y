@@ -1,6 +1,6 @@
 %{
-	#include <cstdio>
 	#include <iostream>
+	#include <fstream>
 	#include <stack>
 	#include "src/Nfa.h"
 	#include "src/Dfa.h"
@@ -216,6 +216,18 @@
 		cout << endl;
 	}
 	
+	void parseFile(istream& input, Nfa *thompson, Nfa *noEps, Dfa *dfa) {
+		string line;
+		while (getline(input, line)) {
+			cout << "Thompson NFA:" << endl;
+			thompson->evaluate(line);
+			cout << "No-EPS NFA:" << endl;
+			noEps->evaluate(line);
+			cout << "DFA:" << endl;
+			dfa->evaluate(line);
+		}	
+	}
+	
 %}
 
 %union {
@@ -296,8 +308,8 @@ character_class : Open_colon class_name Colon_close		{cout << "CLASS: " << $2 <<
 %%
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
-		cerr << "Usage: grep <regex> <string>" << endl;
+	if (argc < 2) {
+		cerr << "Usage: " << argv[0] << " [pattern] [file...]" << endl;
 		exit(0);
 	}
 	
@@ -322,29 +334,29 @@ int main(int argc, char** argv) {
 	}
 		
 	
-	Nfa* top = nfas.top();
-	top->toDot("nfa.dot");
-	top->print();
+	Nfa* thompson = nfas.top();
+	thompson->toDot("thompson.dot");
 	
-	top->evaluate(argv[2]);
+	Nfa *noEps = new Nfa(thompson);
+	noEps->eliminate_eps();
+	noEps->toDot("noEps.dot");
 	
-	top->eliminate_eps();
-	top->print();
-	
-	top->toDot("nfa2.dot");
-	
-	top->evaluate(argv[2]);
-
-	
-	Dfa* dfa = new Dfa(top);
-
+	Dfa* dfa = new Dfa(noEps);
 	dfa->toDot("dfa.dot");
-	dfa->print();
 	dfa->minimise_hopcroft();
-	
-	dfa->toDot("dfa2.dot");
-	dfa->evaluate(argv[2]);
-	dfa->print();	
+	dfa->toDot("hopcroft.dot");
+		
+	if (argc == 2)
+		parseFile(cin, thompson, noEps, dfa);
+	else {
+		int nextFile = 2;
+		while (nextFile < argc) {
+			ifstream fin(argv[nextFile]);
+			parseFile(fin, thompson, noEps, dfa);
+			fin.close();
+			++nextFile;
+		}
+	}	
 }
 
 
