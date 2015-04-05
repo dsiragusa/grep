@@ -14,67 +14,66 @@
 	void yyerror(const char *p) { cerr << "\nInvalid regular expression\n"; exit(0);}
 	
 	stack<Nfa *> nfas;
-	list<int> bracket;
-	stack<State *> startingAnywhere;
-	int orCount = 0;
-	
+	stack<Tree *> startPoints;
 	stack<Tree *> endPoints;
-	Tree *lastNode;
+	list<int> bracket;
 	
-	bool isLineStart = false;
 	bool isLineEnd = false;
 	
 	void concatenate() {
-		if ( ! isLineStart && ! isLineEnd) {
+		if (isLineEnd) {
+			cout << "LINEEND set skip on start candidate: "; endPoints.top()->print();
+			isLineEnd = false;
+			endPoints.top()->setSkip();
+		}		
+		else {
 			Nfa *a = nfas.top();	
 			nfas.pop();
-			
 			nfas.top()->concatenate(a);
-			startingAnywhere.pop();
+						
+			cout << "removing start candidate: "; startPoints.top()->print();
+			startPoints.pop();
 			
-			while (orCount > 0) {
-				startingAnywhere.pop();
-				orCount--;
-			}
-			
+			Tree *t = endPoints.top();
 			endPoints.pop();
 			endPoints.pop();
-			endPoints.push(lastNode);
+			endPoints.push(t);
 		}
-		else if (isLineStart) {
-			isLineStart = false;
-			startingAnywhere.pop();						
-		}
-		else {
-			isLineEnd = false;
-			lastNode->setLineEnd();
-		}		
 	}
 	
 	void unify() {
-		orCount++;
 		Nfa *a = nfas.top();
 		nfas.pop();
 		nfas.top()->unify(a);
 		
-		Tree *r = endPoints.top();
-		endPoints.pop();
-		Tree *l = endPoints.top();
-		endPoints.pop();
+		Tree *r = startPoints.top();
+		startPoints.pop();
+		Tree *l = startPoints.top();
+		startPoints.pop();
 		Tree *node = new Tree(l, r);
+		startPoints.push(node);
+		
+		r = endPoints.top();
+		endPoints.pop();
+		l = endPoints.top();
+		endPoints.pop();
+		node = new Tree(l, r);
 		endPoints.push(node);
-		lastNode = node;
 	}
 	
 	void create(int symbol) {
 		Nfa *nfa = new Nfa(symbol);
 		nfas.push(nfa);
-		startingAnywhere.push(nfa->getInitial());
+		Tree *leaf = new Tree(nfa->getInitial());
+		startPoints.push(leaf);
 		
-		Tree *leaf = new Tree(nfa->getFinal());
-		lastNode = leaf;
+		char tmp = symbol;
+		cout << "new start candidate: " << " " << tmp << " " << nfa->getInitial()->getId() << endl;
+		
+		leaf = new Tree(nfa->getFinal());
 		endPoints.push(leaf);
 	}
+	
 %}
 
 %union {
@@ -97,10 +96,10 @@ extended_reg_exp   :                      ERE_branch
                    | extended_reg_exp '|' ERE_branch	{cout << "{OR}"; unify();}
                    ;
 ERE_branch         :            ERE_expression
+                   | '^'		ERE_expression		{cout << "{ATSTART}"; cout << "LINESTART set skip on start candidate: "; startPoints.top()->print(); startPoints.top()->setSkip();}
                    | ERE_branch ERE_expression		{cout << "CAT"; concatenate();}
                    ;
-ERE_expression     : one_char_or_coll_elem_ERE
-                   | '^'					{cout << "{ATSTART}"; isLineStart = true;}
+ERE_expression     : one_char_or_coll_elem_ERE	{cout << "PUSH";}
                    | '$'					{cout << "{ATEND}"; isLineEnd = true;}
                    | '(' extended_reg_exp ')'	{cout << "PAREN";}
                    | ERE_expression ERE_dupl_symbol
@@ -168,12 +167,13 @@ int main(int argc, char** argv) {
 	yyparse();
 	cout << endl << nfas.size() << endl;
 	
-	cout << endl << startingAnywhere.size() << endl;
+	cout << endl << startPoints.size() << endl;
 	cout << endl << endPoints.size() << endl;
 	
-	while ( ! startingAnywhere.empty()) {
-		startingAnywhere.top()->setTransition(State::DOT, startingAnywhere.top());
-		startingAnywhere.pop();
+	while ( ! startPoints.empty()) {
+		Tree *t = startPoints.top();
+		t->applyStartRules();
+		startPoints.pop();
 	}
 	
 	while ( ! endPoints.empty()) {
@@ -188,7 +188,6 @@ int main(int argc, char** argv) {
 	top->evaluate(argv[2]);
 	
 	top->eliminate_eps();
-	top->print();
 	top->evaluate(argv[2]);
 
 	

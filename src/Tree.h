@@ -17,11 +17,14 @@ public:
 	Tree(Tree *, Tree *);
 	virtual ~Tree();
 
-	void setLineEnd();
+	void setSkip();
 	void applyEndRules();
+	void applyStartRules();
+	void print();
+	void extendStartRule();
 
 private:
-	bool lineEnd;
+	bool skip;
 	State *state;
 	Tree *left;
 	Tree *right;

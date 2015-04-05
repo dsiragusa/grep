@@ -12,7 +12,7 @@ Tree::Tree(State *final) {
 	state = final;
 	left = NULL;
 	right = NULL;
-	lineEnd = false;
+	skip = false;
 }
 
 Tree::Tree(Tree *l, Tree *r) {
@@ -30,12 +30,12 @@ Tree::Tree(Tree *l, Tree *r) {
 	state = NULL;
 	left = l;
 	right = r;
-	lineEnd = false;
+	skip = false;
 
 }
 
-void Tree::setLineEnd() {
-	lineEnd = true;
+void Tree::setSkip() {
+	skip = true;
 }
 
 void Tree::applyEndRules() {
@@ -46,7 +46,7 @@ void Tree::applyEndRules() {
 	else
 		cout << " empty node";
 
-	if (lineEnd) {
+	if (skip) {
 		cout << " $ detected" << endl;
 		return;
 	}
@@ -60,6 +60,45 @@ void Tree::applyEndRules() {
 		left->applyEndRules();
 		right->applyEndRules();
 	}
+}
+
+void Tree::applyStartRules() {
+	cout << "applying start rules";
+
+	if (state != NULL)
+		cout << " for state " << state->getId();
+	else
+		cout << " empty node";
+
+	if (skip) {
+		cout << " ^ detected" << endl;
+		return;
+	}
+
+	if (state != NULL) {
+		cout << " applying DOT" << endl;
+		state->setTransition(State::DOT, state);
+	}
+	else {
+		cout << endl;
+		left->applyStartRules();
+		right->applyStartRules();
+	}
+}
+
+void Tree::extendStartRule() {
+	if (left == NULL)
+		return;
+
+	if (left->skip)
+		setSkip();
+}
+
+void Tree::print() {
+	if (state == NULL)
+		cout << "Node" << endl;
+	else
+		cout << "Leaf " << state->getId() << endl;
 }
 
 Tree::~Tree() {
