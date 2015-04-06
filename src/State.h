@@ -11,7 +11,7 @@
 #include <iostream>
 #include <cstdio>
 #include <map>
-#include <list>
+#include <forward_list>
 #include <unordered_set>
 #include <exception>
 #include "UniqueIdGenerator.h"
@@ -33,7 +33,7 @@ public:
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
 	void toDot(FILE *);
-	list<int> getSymbols();
+	forward_list<int> getSymbols();
 	map<int, unordered_set<State *> > getAllTransitions();
 private:
 	static UniqueIdGenerator idGen;

@@ -69,79 +69,51 @@ void Dfa::rec_determinize(Nfa *toDeterminize,
 	}
 }
 
-void Dfa::print_finals() {
-	cout << ", final:  ";
-	for (auto& f : finals) {
-		cout << f->getId() << " , ";
-	}
-	cout << "\n";
-}
-
 void Dfa::print() {
-	cout << "Initial: " << initial->getId();
-	print_finals();
-	for (auto& state : states) {
+	cout << "Initial: " << initial->getId() << ", final:  ";
+
+	for (auto& f : finals)
+		cout << f->getId() << " , ";
+
+	cout << "\n";
+
+	for (auto& state : states)
 		state->print();
-	}
+
 	cout << "\n\n";
 }
 
-unordered_set<int> Dfa::get_symbols() {
+unordered_set<int> Dfa::getSymbols() {
 	unordered_set<int> symbols;
-	list<int> states_sysmbol;
 	for (auto& state : states) {
-		states_sysmbol = state->getSymbols();
-		for (auto s : states_sysmbol) {
-			if (symbols.find(s) == symbols.end()) {
-				// Does not exists
-				symbols.insert(s);
-			}
-		}
+		forward_list<int> stateSymbols = state->getSymbols();
+		symbols.insert(stateSymbols.begin(), stateSymbols.end());
 	}
 	return symbols;
 }
 
 int Dfa::evaluate(string in) {
-	int result = rec_evaluate_second(in, initial);
+	int result = rec_evaluate(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
 	return result;
 }
 
-int Dfa::rec_evaluate(string in, State *state, State* final) {
-	if (in.length() == 0) {
-		cout << "empty string: state " << state->getId() << "\n";
-		if (state == final)
-			return ACCEPT;
-
-		for (auto& eps_state : state->getTransitions(State::EPS))
-			if (rec_evaluate(in, eps_state, final) == ACCEPT)
-				return ACCEPT;
-
-		return REJECT;
-	}
+int Dfa::rec_evaluate(string in, State *state) {
+	if (in.length() == 0)
+		return (finals.find(state) != finals.end()) ? ACCEPT : REJECT;
 
 	for (auto& next_state : state->getTransitions(in.at(0)))
-		if (rec_evaluate(in.substr(1), next_state, final) == ACCEPT)
+		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
-	for (auto& eps_state : state->getTransitions(State::EPS))
-		if (rec_evaluate(in, eps_state, final) == ACCEPT)
-			return ACCEPT;
-
-	for (auto& next_state : state->getTransitions(State::DOT))
-		if (rec_evaluate(in.substr(1), next_state, final) == ACCEPT)
-			return ACCEPT;
+	if (state->getTransitions(in.at(0)).empty())
+		for (auto& next_state : state->getTransitions(State::DOT))
+			if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
+				return ACCEPT;
 
 	return REJECT;
 }
 
-int Dfa::rec_evaluate_second(string word, State* state) {
-	for (auto& f : finals) {
-		if (rec_evaluate(word, state, f) == ACCEPT)
-			return ACCEPT;
-	}
-	return REJECT;
-}
 /*
  * 
  * 
@@ -223,7 +195,7 @@ unordered_set<State*> Dfa::unreachable_states() {
 	reachable_states.insert(initial);
 	new_states.insert(initial);
 	unordered_set<State *> temp;
-	unordered_set<int> symbols = get_symbols();
+	unordered_set<int> symbols = getSymbols();
 	unordered_set<State*> _P;
 	State* P;
 	do {
@@ -323,7 +295,7 @@ void Dfa::minimise_hopcroft() {
 		P.push_front(finals);
 		P.push_front(notFinal);
 		W.push_back(finals);
-		unordered_set<int> symbols = get_symbols();
+		unordered_set<int> symbols = getSymbols();
 		unordered_set<State*> temp;
 		unordered_set<State*> intersection;
 		unordered_set<State*> diff;

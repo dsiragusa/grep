@@ -46,10 +46,10 @@ unordered_set<State *> State::getTransitions(int symbol) {
 	return states->second;
 }
 
-list<int> State::getSymbols() {
-	list<int> symbols;
+forward_list<int> State::getSymbols() {
+	forward_list<int> symbols;
 	for (auto& t : transitions) {
-		symbols.push_back(t.first);
+		symbols.push_front(t.first);
 	}
 	return symbols;
 }

@@ -9,6 +9,7 @@
 #define SRC_DFA_H_
 
 #include <set>
+#include <list>
 #include <unordered_set>
 #include "State.h"
 #include "Nfa.h"
@@ -22,8 +23,7 @@ public:
 	void print();
 	void minimise_hopcroft();
 	int evaluate(string);
-	int rec_evaluate(string, State *, State*);
-	int rec_evaluate_second(string,State*);
+	int rec_evaluate(string, State *);
 	void toDot(char const *fileName);
 private:
 	unordered_set<State *> states;
@@ -33,10 +33,9 @@ private:
 
 	void determinize(Nfa *);
 	void rec_determinize(Nfa *, map<set<State *>, State *> *, set<State *>);
-	void print_finals();
 	void initializeStatesAfterMinimisation(list<unordered_set<State*> >);
 	unordered_set<State *> unreachable_states();
-	unordered_set<int> get_symbols();
+	unordered_set<int> getSymbols();
 };
 
 #endif /* SRC_DFA_H_ */

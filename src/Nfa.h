@@ -30,9 +30,7 @@ class Nfa {
 	State *initial, *final;
 	unordered_set<State*> finals;
 
-	int rec_evaluate(string, State *);
-	int rec_evaluate_second(string,State*);
-	void print_finals();
+	int recEvaluate(string, State *);
 
 	public:
 	Nfa(int);
@@ -51,7 +49,7 @@ class Nfa {
 	State * getFinal();
 
 	void eliminateEps();
-	list<State*> getStatesWithEpsTransitions();
+	forward_list<State*> getStatesWithEpsTransitions();
 	bool isAccessible(State*);
 
 	void print();

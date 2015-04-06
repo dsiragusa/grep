@@ -87,43 +87,41 @@ void Nfa::unify(const Nfa *toUnify) {
 }
 
 void Nfa::eliminateEps() {
-	unordered_set<State*> _states;
-	unordered_set<State*> _states1;
-	list<State*> _stateEPS = getStatesWithEpsTransitions();
+	forward_list<State*> epsTransStates = getStatesWithEpsTransitions();
 	State* current;
-	list<int> symbols;
 
 	finals.insert(final);
 
-	while (!_stateEPS.empty()) {
-		current = _stateEPS.front();
-		_stateEPS.pop_front();
-		_states = current->getTransitions(State::EPS);
-		for (auto& s : _states) {
-			symbols = s->getSymbols();
-			if (finals.find(s)!=finals.end()) {
-				if (finals.find(current) == finals.end()) {
-					finals.insert(current);
+	while ( ! epsTransStates.empty()) {
+		current = epsTransStates.front();
+		epsTransStates.pop_front();
+
+		for (auto epsDest : current->getTransitions(State::EPS)) {
+			if (finals.find(epsDest) != finals.end()) {
+				finals.insert(current);
+			}
+
+			for (auto symbol : epsDest->getSymbols()) {
+				for (auto dest : epsDest->getTransitions(symbol)) {
+					current->setTransition(symbol, dest);
 				}
 			}
-			for (auto symbol : symbols) {
-				_states1 = s->getTransitions(symbol);
-				// Create a transitions
-				for (auto e1 : _states1) {
-					current->setTransition(symbol, e1);
-				}
-			}
-			current->deleteTransition(State::EPS, s);
-			if (!isAccessible(s)) {
-				states.erase(s);
-				finals.erase(s);
+
+			current->deleteTransition(State::EPS, epsDest);
+
+			if ( ! isAccessible(epsDest)) {
+				states.erase(epsDest);
+				finals.erase(epsDest);
+				delete epsDest;
 			}
 		}
-		//states.insert(current);
-		_stateEPS = getStatesWithEpsTransitions();
+
+		epsTransStates = getStatesWithEpsTransitions();
 	}
-	if (!isAccessible(final)) {
+
+	if ( ! isAccessible(final) && finals.find(final) != finals.end()) {
 		finals.erase(final);
+		delete final;
 	}
 }
 
@@ -132,11 +130,9 @@ unordered_set<State*> Nfa::getFinals() {
 }
 
 bool Nfa::isAccessible(State* state) {
-	list<int> symbols;
 	unordered_set<State*> accessible_states;
 	for (auto& current_state : states) {
-		symbols = current_state->getSymbols();
-		for (auto s : symbols) {
+		for (auto s : current_state->getSymbols()) {
 			accessible_states = current_state->getTransitions(s);
 			if (accessible_states.find(state) != accessible_states.end())
 				return true;
@@ -145,13 +141,11 @@ bool Nfa::isAccessible(State* state) {
 	return false;
 }
 
-list<State*> Nfa::getStatesWithEpsTransitions() {
-	unordered_set<State*> temp;
-	list<State*> result = list<State*>();
+forward_list<State*> Nfa::getStatesWithEpsTransitions() {
+	forward_list<State*> result;
 	for (auto state : states) {
-		temp = state->getTransitions(State::EPS);
-		if (!temp.empty()) {
-			result.push_back(state);
+		if ( ! state->getTransitions(State::EPS).empty()) {
+			result.push_front(state);
 		}
 	}
 	return result;
@@ -196,13 +190,13 @@ void Nfa::applyCardinality(int min, int max) {
 			break;
 		}
 		default: {
-			list<State *> abortStates;
-			abortStates.push_back(final);
+			forward_list<State *> abortStates;
+			abortStates.push_front(final);
 
 			for (; i < max; i++) {
 				Nfa toAppend = Nfa(orig);
 				concatenate(&toAppend);
-				abortStates.push_back(final);
+				abortStates.push_front(final);
 			}
 
 			for (auto& abort : abortStates) {
@@ -214,14 +208,13 @@ void Nfa::applyCardinality(int min, int max) {
 	}
 }
 
-int Nfa::rec_evaluate(string in, State *state) {
+int Nfa::recEvaluate(string in, State *state) {
 	if (in.length() == 0) {
-		cout << "empty string: state " << state->getId() << "\n";
-		if (state == final)
+		if (finals.find(state) != finals.end())
 			return ACCEPT;
 
 		for (auto& eps_state : state->getTransitions(State::EPS))
-			if (rec_evaluate(in, eps_state) == ACCEPT)
+			if (recEvaluate(in, eps_state) == ACCEPT)
 				return ACCEPT;
 
 		return REJECT;
@@ -230,19 +223,19 @@ int Nfa::rec_evaluate(string in, State *state) {
 	bool symbolHasTrans = false;
 	for (auto& next_state : state->getTransitions(in.at(0))) {
 		symbolHasTrans = true;
-		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
+		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 	}
 
 	for (auto& eps_state : state->getTransitions(State::EPS))
-		if (rec_evaluate(in, eps_state) == ACCEPT)
+		if (recEvaluate(in, eps_state) == ACCEPT)
 			return ACCEPT;
 
 	if (symbolHasTrans)
 		return REJECT;
 
 	for (auto& next_state : state->getTransitions(State::DOT))
-		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
+		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
 	return REJECT;
@@ -260,39 +253,34 @@ State * Nfa::getFinal() {
 	return final;
 }
 
-int Nfa::rec_evaluate_second(string word, State* state) {
-	if (finals.size() > 0) {
-		for (auto& f : finals) {
-			final = f;
-			if (rec_evaluate(word, state) == ACCEPT)
-				return ACCEPT;
-		}
-		return REJECT;
-	} else
-		return rec_evaluate(word, state);
+int Nfa::evaluate(string in) {
+	bool emptyFinals = finals.empty();
+
+	if (emptyFinals)
+		finals.insert(final);
+
+	int result = recEvaluate(in, initial);
+	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
+
+	if (emptyFinals)
+		finals.clear();
+
+	return result;
 }
 
-void Nfa::print_finals() {
-	cout << ", final:  ";
+void Nfa::print() {
+	cout << "Initial: " << initial->getId() << ", final: ";
+
 	if (finals.size() > 0) {
 		for (auto& f : finals) {
 			cout << f->getId() << " , ";
 		}
 		cout << "\n";
-	} else {
+	}
+	else {
 		cout << final->getId() << "\n";
 	}
-}
 
-int Nfa::evaluate(string in) {
-	int result = rec_evaluate_second(in, initial);
-	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
-	return result;
-}
-
-void Nfa::print() {
-	cout << "Initial: " << initial->getId();
-	print_finals();
 	for (auto& state : states) {
 		state->print();
 	}
