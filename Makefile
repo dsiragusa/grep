@@ -1,5 +1,10 @@
+UNAME := $(shell uname -s)
 CC = g++
-C11FLAG = -g -std=c++0x -Wno-deprecated-register
+ifeq ($(UNAME), Darwin)
+	C11FLAG = -g -std=c++0x -Wno-deprecated-register
+else
+	C11FLAG = -g -std=c++0x
+endif
 
 all: grep
 
