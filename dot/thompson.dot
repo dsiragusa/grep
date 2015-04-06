@@ -1,0 +1,10 @@
+digraph nfa{
+8 -> 4 [label="EPS"];
+8 -> 0 [label="EPS"];
+4 -> 5 [label="b"];
+5 -> 7 [label="b"];
+3 -> 9 [label="EPS"];
+7 -> 9 [label="EPS"];
+1 -> 3 [label="a"];
+0 -> 1 [label="a"];
+}

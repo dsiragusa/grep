@@ -12,7 +12,8 @@ Dfa::Dfa(Nfa *toDeterminize) {
 }
 
 Dfa::~Dfa() {
-	// TODO Auto-generated destructor stub
+	for (auto state : states)
+		delete state;
 }
 
 void Dfa::determinize(Nfa *toDeterminize) {
@@ -23,6 +24,7 @@ void Dfa::determinize(Nfa *toDeterminize) {
 
 	rec_determinize(toDeterminize, superSet, initialId);
 	initial = superSet->find(initialId)->second;
+	delete superSet;
 }
 
 void Dfa::rec_determinize(Nfa *toDeterminize,
@@ -43,23 +45,20 @@ void Dfa::rec_determinize(Nfa *toDeterminize,
 	}
 
 	for (auto state : currentId) {
-		if (toDeterminize->getFinals().find(state)
-				!= toDeterminize->getFinals().end())
+		if (toDeterminize->getFinals().find(state) != toDeterminize->getFinals().end())
 			finals.insert(current);
 
-		for (auto symbol : state->get_symbols()) {
+		for (auto symbol : state->getSymbols()) {
 			auto nextStates = state->getTransitions(symbol);
 
 			if (transitions.find(symbol) == transitions.end()) {
 				auto tmp = set<State *>(nextStates.begin(), nextStates.end());
 				transitions.emplace(symbol, tmp);
 			} else {
-				transitions.find(symbol)->second.insert(nextStates.begin(),
-						nextStates.end());
+				transitions[symbol].insert(nextStates.begin(), nextStates.end());
 			}
 
-			transitions.find(symbol)->second.insert(dotTrans.begin(),
-					dotTrans.end());
+			transitions[symbol].insert(dotTrans.begin(), dotTrans.end());
 		}
 	}
 
@@ -91,7 +90,7 @@ unordered_set<int> Dfa::get_symbols() {
 	unordered_set<int> symbols;
 	list<int> states_sysmbol;
 	for (auto& state : states) {
-		states_sysmbol = state->get_symbols();
+		states_sysmbol = state->getSymbols();
 		for (auto s : states_sysmbol) {
 			if (symbols.find(s) == symbols.end()) {
 				// Does not exists
@@ -404,7 +403,7 @@ void Dfa::initializeStatesAfterMinimisation(
 			if (currentSet.size() > 0) {
 				it = currentSet.begin();
 				auto s = *it;
-				old_trans = s->getTransitions();
+				old_trans = s->getAllTransitions();
 				if (finals.find(s) != finals.end()) {
 					if (setOFfinals.find(state) == setOFfinals.end()) {
 						setOFfinals.insert(state);

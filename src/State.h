@@ -26,15 +26,15 @@ public:
 	State();
 	virtual ~State();
 	int getId();
-	void delete_transition(int,State*);
+	void deleteTransition(int,State*);
 	unordered_set<State *> getTransitions(int);
 	void setTransition(int, State *);
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
 	void toDot(FILE *);
-	list<int> get_symbols();
-	map<int, unordered_set<State *> > getTransitions();
+	list<int> getSymbols();
+	map<int, unordered_set<State *> > getAllTransitions();
 private:
 	static UniqueIdGenerator idGen;
 

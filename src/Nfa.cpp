@@ -55,15 +55,16 @@ Nfa::Nfa(const Nfa *toCopy) {
 	final = oldToNewStates.find(toCopy->final)->second;
 }
 
-//should be called whenever ^ is not present
-void Nfa::endAnywhere() {
-	final->setTransition(State::DOT, final);
+Nfa::~Nfa() {
+	for (auto state : states)
+		delete state;
 }
 
 void Nfa::concatenate(const Nfa *toAppend) {
 	states.insert(toAppend->states.begin(), toAppend->states.end());
 	states.erase(toAppend->initial);
 	(*states.find(final))->copyTransitions(toAppend->initial);
+	delete toAppend->initial;
 
 	final = toAppend->final;
 }
@@ -85,10 +86,10 @@ void Nfa::unify(const Nfa *toUnify) {
 	final = newFinal;
 }
 
-void Nfa::eliminate_eps() {
+void Nfa::eliminateEps() {
 	unordered_set<State*> _states;
 	unordered_set<State*> _states1;
-	list<State*> _stateEPS = getStatesWithEpSTransition();
+	list<State*> _stateEPS = getStatesWithEpsTransitions();
 	State* current;
 	list<int> symbols;
 
@@ -99,7 +100,7 @@ void Nfa::eliminate_eps() {
 		_stateEPS.pop_front();
 		_states = current->getTransitions(State::EPS);
 		for (auto& s : _states) {
-			symbols = s->get_symbols();
+			symbols = s->getSymbols();
 			if (finals.find(s)!=finals.end()) {
 				if (finals.find(current) == finals.end()) {
 					finals.insert(current);
@@ -112,14 +113,14 @@ void Nfa::eliminate_eps() {
 					current->setTransition(symbol, e1);
 				}
 			}
-			current->delete_transition(State::EPS, s);
+			current->deleteTransition(State::EPS, s);
 			if (!isAccessible(s)) {
 				states.erase(s);
 				finals.erase(s);
 			}
 		}
 		//states.insert(current);
-		_stateEPS = getStatesWithEpSTransition();
+		_stateEPS = getStatesWithEpsTransitions();
 	}
 	if (!isAccessible(final)) {
 		finals.erase(final);
@@ -134,7 +135,7 @@ bool Nfa::isAccessible(State* state) {
 	list<int> symbols;
 	unordered_set<State*> accessible_states;
 	for (auto& current_state : states) {
-		symbols = current_state->get_symbols();
+		symbols = current_state->getSymbols();
 		for (auto s : symbols) {
 			accessible_states = current_state->getTransitions(s);
 			if (accessible_states.find(state) != accessible_states.end())
@@ -144,7 +145,7 @@ bool Nfa::isAccessible(State* state) {
 	return false;
 }
 
-list<State*> Nfa::getStatesWithEpSTransition() {
+list<State*> Nfa::getStatesWithEpsTransitions() {
 	unordered_set<State*> temp;
 	list<State*> result = list<State*>();
 	for (auto state : states) {
@@ -156,7 +157,7 @@ list<State*> Nfa::getStatesWithEpSTransition() {
 	return result;
 }
 
-void Nfa::apply_cardinality(enum card_t type) {
+void Nfa::applyCardinality(enum card_t type) {
 	State *newInitial = new State();
 	State *newFinal = new State();
 	states.insert(newInitial);
@@ -175,41 +176,41 @@ void Nfa::apply_cardinality(enum card_t type) {
 	final = newFinal;
 }
 
-void Nfa::apply_cardinality(int min, int max) {
-	Nfa *orig = new Nfa(this);
+void Nfa::applyCardinality(int min, int max) {
+	Nfa orig = Nfa(this);
 	State *newFinal = new State();
 
 	int i;
 	for (i = 1; i < min; i++) {
-		Nfa *toAppend = new Nfa(orig);
-		concatenate(toAppend);
+		Nfa toAppend = Nfa(orig);
+		concatenate(&toAppend);
 	}
 
 	switch (max) {
-	case SIMPLE_COUNT:
-		break;	//do_nothing
-	case UNBOUNDED: {
-		Nfa *toAppend = new Nfa(orig);
-		toAppend->apply_cardinality(KLEENE_STAR);
-		concatenate(toAppend);
-		break;
-	}
-	default: {
-		list<State *> abortStates;
-		abortStates.push_back(final);
-
-		for (; i < max; i++) {
-			Nfa *toAppend = new Nfa(orig);
-			concatenate(toAppend);
+		case SIMPLE_COUNT:
+			break;	//do_nothing
+		case UNBOUNDED: {
+			Nfa toAppend = Nfa(orig);
+			toAppend.applyCardinality(KLEENE_STAR);
+			concatenate(&toAppend);
+			break;
+		}
+		default: {
+			list<State *> abortStates;
 			abortStates.push_back(final);
-		}
 
-		for (auto& abort : abortStates) {
-			(*states.find(abort))->setTransition(State::EPS, newFinal);
+			for (; i < max; i++) {
+				Nfa toAppend = Nfa(orig);
+				concatenate(&toAppend);
+				abortStates.push_back(final);
+			}
+
+			for (auto& abort : abortStates) {
+				(*states.find(abort))->setTransition(State::EPS, newFinal);
+			}
+			states.insert(newFinal);
+			final = newFinal;
 		}
-		states.insert(newFinal);
-		final = newFinal;
-	}
 	}
 }
 
@@ -245,10 +246,6 @@ int Nfa::rec_evaluate(string in, State *state) {
 			return ACCEPT;
 
 	return REJECT;
-}
-
-Nfa::~Nfa() {
-	// TODO Auto-generated destructor stub
 }
 
 unordered_set<State *> Nfa::getStates() {
@@ -311,21 +308,3 @@ void Nfa::toDot(char const *fileName) {
 	fprintf(dotFile, "}");
 	fclose(dotFile);
 }
-
-/*
- int main() {
- Nfa *a = new Nfa('a');
- Nfa *b = new Nfa('b');
- Nfa *c = new Nfa('c');
- Nfa *d = new Nfa('d');
- a->concatenate(b);
- a->concatenate(c);
- a->concatenate(d);
- a->toDot("test.dot");
- a->print();
- Nfa *e = new Nfa(a);
- e->print();
- a->toDot("copy.dot");
- //a->apply_cardinality(2, 4);
- }
- */

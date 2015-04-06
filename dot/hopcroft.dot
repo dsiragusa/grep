@@ -1,0 +1,6 @@
+digraph nfa{
+25 -> 26 [label="a"];
+24 -> 26 [label="b"];
+23 -> 25 [label="a"];
+23 -> 24 [label="b"];
+}

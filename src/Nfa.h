@@ -36,28 +36,27 @@ class Nfa {
 
 	public:
 	Nfa(int);
+	Nfa(const Nfa *);
 	Nfa(forward_list<int>, bool);
 	virtual ~Nfa();
 
-	void endAnywhere();
 	void concatenate(const Nfa *);
 	void unify(const Nfa *);
-	void apply_cardinality(enum card_t);
-	void apply_cardinality(int, int);
+	void applyCardinality(enum card_t);
+	void applyCardinality(int, int);
 
 	unordered_set<State *> getStates();
+	unordered_set<State*> getFinals();
 	State * getInitial();
 	State * getFinal();
 
-	void eliminate_eps();
-	list<State*> getStatesWithEpSTransition();
+	void eliminateEps();
+	list<State*> getStatesWithEpsTransitions();
+	bool isAccessible(State*);
 
 	void print();
 	void toDot(char const *);
 	int evaluate(string);
-	Nfa(const Nfa *);
-	bool isAccessible(State*);
-	unordered_set<State*> getFinals();
 };
 
 #endif /* SRC_NFA_H_ */

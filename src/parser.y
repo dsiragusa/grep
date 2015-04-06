@@ -30,16 +30,27 @@
 		else {
 			Nfa *a = nfas.top();	
 			nfas.pop();
+			cout << "removing start candidate: "; startPoints.top()->print();
 			nfas.top()->concatenate(a);
 						
-			cout << "removing start candidate: "; startPoints.top()->print();
+			delete startPoints.top();
 			startPoints.pop();
 			
 			Tree *t = endPoints.top();
 			endPoints.pop();
+			delete endPoints.top();
 			endPoints.pop();
 			endPoints.push(t);
 		}
+	}
+	
+	void unifyTrees(stack<Tree *> *treeStack) {
+		Tree *r = treeStack->top();
+		treeStack->pop();
+		Tree *l = treeStack->top();
+		treeStack->pop();
+		Tree *node = new Tree(l, r);
+		treeStack->push(node);
 	}
 	
 	void unify() {
@@ -47,28 +58,15 @@
 		nfas.pop();
 		nfas.top()->unify(a);
 		
-		Tree *r = startPoints.top();
-		startPoints.pop();
-		Tree *l = startPoints.top();
-		startPoints.pop();
-		Tree *node = new Tree(l, r);
-		startPoints.push(node);
-		
-		r = endPoints.top();
-		endPoints.pop();
-		l = endPoints.top();
-		endPoints.pop();
-		node = new Tree(l, r);
-		endPoints.push(node);
+		unifyTrees(&startPoints);
+		unifyTrees(&endPoints);
 	}
 	
 	void pushNfa(Nfa *nfa) {
-		//Nfa *nfa = new Nfa(symbol);
 		nfas.push(nfa);
 		Tree *leaf = new Tree(nfa->getInitial());
 		startPoints.push(leaf);
 		
-		//char tmp = symbol;
 		cout << "new start candidate: " << " " << nfa->getInitial()->getId() << endl;
 		
 		leaf = new Tree(nfa->getFinal());
@@ -95,6 +93,15 @@
 			cout << "DFA:" << endl;
 			dfa->evaluate(line);
 		}	
+	}
+	
+	void applyRules(stack<Tree *> *toApply) {
+		while ( ! toApply->empty()) {
+			Tree *t = toApply->top();
+			t->applyRules();
+			delete t;
+			toApply->pop();
+		}
 	}
 	
 %}
@@ -132,12 +139,12 @@ one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]"; pushNfa(new Nfa($1
                    | '.'				{cout << "DOT"; pushNfa(new Nfa(State::DOT));}
                    | bracket_expression {bracket.clear();}
                    ;
-ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->apply_cardinality(KLEENE_STAR);}
-                   | '+'	{cout << "PLUS"; nfas.top()->apply_cardinality(PLUS);}
-                   | '?'	{cout << "OPT"; nfas.top()->apply_cardinality(OPTION);}
-                   | '{' DUP_COUNT               '}'	{cout << "{"<<$2<<"}"; nfas.top()->apply_cardinality($2, SIMPLE_COUNT);}
-                   | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}"; nfas.top()->apply_cardinality($2, UNBOUNDED);}
-                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}"; nfas.top()->apply_cardinality($2, $4);}
+ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->applyCardinality(KLEENE_STAR);}
+                   | '+'	{cout << "PLUS"; nfas.top()->applyCardinality(PLUS);}
+                   | '?'	{cout << "OPT"; nfas.top()->applyCardinality(OPTION);}
+                   | '{' DUP_COUNT               '}'	{cout << "{"<<$2<<"}"; nfas.top()->applyCardinality($2, SIMPLE_COUNT);}
+                   | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}"; nfas.top()->applyCardinality($2, UNBOUNDED);}
+                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}"; nfas.top()->applyCardinality($2, $4);}
                    ;
 bracket_expression : '[' matching_list    ']'	{cout << "matching"; printBracket(); pushNfa(new Nfa(bracket.getBracket(), true));}
                    | '[' nonmatching_list ']'	{cout << "non_matching"; printBracket(); pushNfa(new Nfa(bracket.getBracket(), false));}
@@ -186,22 +193,9 @@ int main(int argc, char** argv) {
 	if (strlen(argv[1]) > 0) {
 		parse_string(argv[1]);
 		yyparse();
-		cout << endl << nfas.size() << endl;
-	
-		cout << endl << startPoints.size() << endl;
-		cout << endl << endPoints.size() << endl;
-	
-		while ( ! startPoints.empty()) {
-			Tree *t = startPoints.top();
-			t->applyStartRules();
-			startPoints.pop();
-		}
-	
-		while ( ! endPoints.empty()) {
-			Tree *t = endPoints.top();
-			t->applyEndRules();
-			endPoints.pop();
-		}
+		
+		applyRules(&startPoints);
+		applyRules(&endPoints);
 	}
 	else {
 		Nfa *nfa = new Nfa(State::DOT);
@@ -211,16 +205,16 @@ int main(int argc, char** argv) {
 	}
 	
 	Nfa* thompson = nfas.top();
-	thompson->toDot("thompson.dot");
+	thompson->toDot("dot/thompson.dot");
 	
 	Nfa *noEps = new Nfa(thompson);
-	noEps->eliminate_eps();
-	noEps->toDot("noEps.dot");
+	noEps->eliminateEps();
+	noEps->toDot("dot/noEps.dot");
 	
 	Dfa* dfa = new Dfa(noEps);
-	dfa->toDot("dfa.dot");
+	dfa->toDot("dot/dfa.dot");
 	dfa->minimise_hopcroft();
-	dfa->toDot("hopcroft.dot");
+	dfa->toDot("dot/hopcroft.dot");
 		
 	if (argc == 2)
 		parseFile(cin, thompson, noEps, dfa, false, "");
@@ -233,7 +227,11 @@ int main(int argc, char** argv) {
 			fin.close();
 			++nextFile;
 		}
-	}	
+	}
+	
+	delete thompson;
+	delete noEps;
+	delete dfa;
 }
 
 

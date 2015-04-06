@@ -18,10 +18,8 @@ public:
 	virtual ~Tree();
 
 	void setSkip();
-	void applyEndRules();
-	void applyStartRules();
+	void applyRules();
 	void print();
-	void extendStartRule();
 
 private:
 	bool skip;

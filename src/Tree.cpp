@@ -38,16 +38,14 @@ void Tree::setSkip() {
 	skip = true;
 }
 
-void Tree::applyEndRules() {
-	cout << "applying end rules";
-
+void Tree::applyRules() {
 	if (state != NULL)
 		cout << " for state " << state->getId();
 	else
 		cout << " empty node";
 
 	if (skip) {
-		cout << " $ detected" << endl;
+		cout << " skip detected" << endl;
 		return;
 	}
 
@@ -57,41 +55,9 @@ void Tree::applyEndRules() {
 	}
 	else {
 		cout << endl;
-		left->applyEndRules();
-		right->applyEndRules();
+		left->applyRules();
+		right->applyRules();
 	}
-}
-
-void Tree::applyStartRules() {
-	cout << "applying start rules";
-
-	if (state != NULL)
-		cout << " for state " << state->getId();
-	else
-		cout << " empty node";
-
-	if (skip) {
-		cout << " ^ detected" << endl;
-		return;
-	}
-
-	if (state != NULL) {
-		cout << " applying DOT" << endl;
-		state->setTransition(State::DOT, state);
-	}
-	else {
-		cout << endl;
-		left->applyStartRules();
-		right->applyStartRules();
-	}
-}
-
-void Tree::extendStartRule() {
-	if (left == NULL)
-		return;
-
-	if (left->skip)
-		setSkip();
 }
 
 void Tree::print() {
@@ -102,6 +68,9 @@ void Tree::print() {
 }
 
 Tree::~Tree() {
-	// TODO Auto-generated destructor stub
+	if (left != NULL)
+		delete left;
+	if (right != NULL)
+		delete right;
 }
 

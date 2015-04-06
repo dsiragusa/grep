@@ -15,8 +15,7 @@ State::State() {
 	id = idGen.getUniqueId();
 }
 
-void State::adaptTransitions(const State *toCopy,
-		const map<State *, State *> *oldToNewStates) {
+void State::adaptTransitions(const State *toCopy, const map<State *, State *> *oldToNewStates) {
 	for (auto& trans : toCopy->transitions) {
 		unordered_set<State *> newNextStates;
 		for (auto& nextState : trans.second) {
@@ -47,7 +46,7 @@ unordered_set<State *> State::getTransitions(int symbol) {
 	return states->second;
 }
 
-list<int> State::get_symbols() {
+list<int> State::getSymbols() {
 	list<int> symbols;
 	for (auto& t : transitions) {
 		symbols.push_back(t.first);
@@ -61,7 +60,7 @@ void State::setTransition(int symbol, State *state) {
 	transitions.find(symbol)->second.insert(state);
 }
 
-map<int, unordered_set<State *> > State::getTransitions() {
+map<int, unordered_set<State *> > State::getAllTransitions() {
 	return transitions;
 }
 
@@ -88,12 +87,10 @@ void State::toDot(FILE *dotFile) {
 	}
 }
 
-void State::delete_transition(int symbol, State* toDelete) {
+void State::deleteTransition(int symbol, State* toDelete) {
 	auto transition = transitions.find(symbol);
 	if (transition == transitions.end())
 		return;
-
-	unordered_set<State *> temp;
 
 	transition->second.erase(toDelete);
 	if (transition->second.empty())
