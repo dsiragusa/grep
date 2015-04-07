@@ -213,9 +213,15 @@ int main(int argc, char** argv) {
 	
 	Dfa* dfa = new Dfa(noEps);
 	dfa->toDot("dot/dfa.dot");
+	/*
+	dfa->minimize();
+	dfa->toDot("dot/brzo.dot");
+	
+	dfa = new Dfa(noEps);
 	dfa->minimise_hopcroft();
 	dfa->toDot("dot/hopcroft.dot");
-		
+	dfa->print();
+	*/
 	if (argc == 2)
 		parseFile(cin, thompson, noEps, dfa, false, "");
 	else {

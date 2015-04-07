@@ -101,17 +101,17 @@ void BracketExprManager::applyPrint() {
 }
 
 void BracketExprManager::applyPunct() {
-		bracket.push_front(0x21);
-		bracket.push_front(0x2f);
+	bracket.push_front(0x21);
+	bracket.push_front(0x2f);
 	expandRange();
-		bracket.push_front(0x3a);
-		bracket.push_front(0x40);
+	bracket.push_front(0x3a);
+	bracket.push_front(0x40);
 	expandRange();
-		bracket.push_front(0x5b);
-		bracket.push_front(0x60);
+	bracket.push_front(0x5b);
+	bracket.push_front(0x60);
 	expandRange();
-		bracket.push_front(0x7b);
-		bracket.push_front(0x7e);
+	bracket.push_front(0x7b);
+	bracket.push_front(0x7e);
 	expandRange();
 }
 

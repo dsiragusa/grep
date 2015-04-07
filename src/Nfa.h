@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <set>
 #include <forward_list>
+#include "Dfa.h"
 #include "State.h"
 
 using namespace std;
@@ -36,6 +37,7 @@ class Nfa {
 	Nfa(int);
 	Nfa(const Nfa *);
 	Nfa(forward_list<int>, bool);
+	Nfa(Dfa *);
 	virtual ~Nfa();
 
 	void concatenate(const Nfa *);
@@ -49,7 +51,7 @@ class Nfa {
 	State * getFinal();
 
 	void eliminateEps();
-	forward_list<State*> getStatesWithEpsTransitions();
+	State * getStateWithEpsTransitions();
 	bool isAccessible(State*);
 
 	void print();

@@ -6,6 +6,7 @@
  */
 
 #include "Dfa.h"
+#include "Nfa.h"
 
 Dfa::Dfa(Nfa *toDeterminize) {
 	determinize(toDeterminize);
@@ -22,12 +23,12 @@ void Dfa::determinize(Nfa *toDeterminize) {
 	set<State *> initialId;
 	initialId.insert(toDeterminize->getInitial());
 
-	rec_determinize(toDeterminize, superSet, initialId);
+	recDeterminize(toDeterminize, superSet, initialId);
 	initial = superSet->find(initialId)->second;
 	delete superSet;
 }
 
-void Dfa::rec_determinize(Nfa *toDeterminize,
+void Dfa::recDeterminize(Nfa *toDeterminize,
 		map<set<State *>, State *> *superSet, set<State *> currentId) {
 	if (superSet->find(currentId) != superSet->end())
 		return;
@@ -63,7 +64,7 @@ void Dfa::rec_determinize(Nfa *toDeterminize,
 	}
 
 	for (auto transition : transitions) {
-		rec_determinize(toDeterminize, superSet, transition.second);
+		recDeterminize(toDeterminize, superSet, transition.second);
 		current->setTransition(transition.first,
 				superSet->find(transition.second)->second);
 	}
@@ -93,22 +94,22 @@ unordered_set<int> Dfa::getSymbols() {
 }
 
 int Dfa::evaluate(string in) {
-	int result = rec_evaluate(in, initial);
+	int result = recEvaluate(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
 	return result;
 }
 
-int Dfa::rec_evaluate(string in, State *state) {
+int Dfa::recEvaluate(string in, State *state) {
 	if (in.length() == 0)
 		return (finals.find(state) != finals.end()) ? ACCEPT : REJECT;
 
 	for (auto& next_state : state->getTransitions(in.at(0)))
-		if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
+		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
 	if (state->getTransitions(in.at(0)).empty())
 		for (auto& next_state : state->getTransitions(State::DOT))
-			if (rec_evaluate(in.substr(1), next_state) == ACCEPT)
+			if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 				return ACCEPT;
 
 	return REJECT;
@@ -187,34 +188,6 @@ unordered_set<State *> Intersection(unordered_set<State *> first,
 		}
 	}
 	return result;
-}
-
-unordered_set<State*> Dfa::unreachable_states() {
-	unordered_set<State *> reachable_states;
-	unordered_set<State *> new_states;
-	reachable_states.insert(initial);
-	new_states.insert(initial);
-	unordered_set<State *> temp;
-	unordered_set<int> symbols = getSymbols();
-	unordered_set<State*> _P;
-	State* P;
-	do {
-		temp = unordered_set<State*>();
-		for (auto& q : new_states) {
-			for (auto s : symbols) {
-				_P = q->getTransitions(s);
-				if (!_P.empty()) {
-					P = *_P.begin();
-					if (temp.find(P) == temp.end()) {
-						temp.insert(P);
-					}
-				}
-			}
-		}
-		new_states = difference(temp, reachable_states);
-		reachable_states = Union(reachable_states, new_states);
-	} while (temp != new_states);
-	return difference(states, reachable_states);
 }
 
 bool canTransitToStateOn(State* current, int symbol, unordered_set<State*> B) {
@@ -403,6 +376,36 @@ void Dfa::initializeStatesAfterMinimisation(
 		states = setOfresults;
 		finals = setOFfinals;
 	}
+}
+
+void Dfa::minimize() {
+	Nfa *transposed = new Nfa(this);
+
+	states.clear();
+	finals.clear();
+	determinize(transposed);
+	delete transposed;
+
+	transposed = new Nfa(this);
+
+	states.clear();
+	finals.clear();
+
+	determinize(transposed);
+
+	delete transposed;
+}
+
+unordered_set<State *> Dfa::getStates() {
+	return states;
+}
+
+State * Dfa::getInitial() {
+	return initial;
+}
+
+unordered_set<State *> Dfa::getFinals() {
+	return finals;
 }
 
 void Dfa::toDot(char const *fileName) {

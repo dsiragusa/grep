@@ -45,14 +45,50 @@ Nfa::Nfa(const Nfa *toCopy) {
 	auto stateToCopy = toCopy->states.begin();
 
 	while (stateToCopy != toCopy->states.end()) {
-		auto newState = oldToNewStates.find(*stateToCopy)->second;
+		auto newState = oldToNewStates[*stateToCopy];
 		newState->adaptTransitions(*stateToCopy, &oldToNewStates);
 
 		stateToCopy++;
 	}
 
-	initial = oldToNewStates.find(toCopy->initial)->second;
-	final = oldToNewStates.find(toCopy->final)->second;
+	initial = oldToNewStates[toCopy->initial];
+	final = oldToNewStates[toCopy->final];
+}
+
+Nfa::Nfa(Dfa *toTranspose) {
+	map<State *, State *> mapStates;
+
+	for (auto dfaState : toTranspose->getStates()) {
+		State *newState = new State();
+		states.insert(newState);
+		mapStates.emplace(dfaState, newState);
+	}
+
+	final = mapStates[toTranspose->getInitial()];
+
+	for (auto dfaState : toTranspose->getStates()) {
+		for (auto trans : dfaState->getAllTransitions()) {
+			State *dest = *(trans.second.begin());
+			State *newDest = mapStates[dest];
+			newDest->setTransition(trans.first, mapStates[dfaState]);
+		}
+	}
+
+	if (toTranspose->getFinals().size() > 1) {
+		initial = new State();
+		for (auto dfaFinal : toTranspose->getFinals())
+			initial->setTransition(State::EPS, mapStates[dfaFinal]);
+		states.insert(initial);
+
+		this->toDot("beforeEps.dot");
+		eliminateEps();
+		this->toDot("afterEps.dot");
+	}
+	else {
+		State *dfaFinal = *(toTranspose->getFinals().begin());
+		initial = mapStates[dfaFinal];
+		finals.insert(final);
+	}
 }
 
 Nfa::~Nfa() {
@@ -87,27 +123,23 @@ void Nfa::unify(const Nfa *toUnify) {
 }
 
 void Nfa::eliminateEps() {
-	forward_list<State*> epsTransStates = getStatesWithEpsTransitions();
-	State* current;
+	State * epsTransState;
 
 	finals.insert(final);
 
-	while ( ! epsTransStates.empty()) {
-		current = epsTransStates.front();
-		epsTransStates.pop_front();
-
-		for (auto epsDest : current->getTransitions(State::EPS)) {
+	while ((epsTransState = getStateWithEpsTransitions()) != NULL) {
+		for (auto epsDest : epsTransState->getTransitions(State::EPS)) {
 			if (finals.find(epsDest) != finals.end()) {
-				finals.insert(current);
+				finals.insert(epsTransState);
 			}
 
 			for (auto symbol : epsDest->getSymbols()) {
 				for (auto dest : epsDest->getTransitions(symbol)) {
-					current->setTransition(symbol, dest);
+					epsTransState->setTransition(symbol, dest);
 				}
 			}
 
-			current->deleteTransition(State::EPS, epsDest);
+			epsTransState->deleteTransition(State::EPS, epsDest);
 
 			if ( ! isAccessible(epsDest)) {
 				states.erase(epsDest);
@@ -115,8 +147,6 @@ void Nfa::eliminateEps() {
 				delete epsDest;
 			}
 		}
-
-		epsTransStates = getStatesWithEpsTransitions();
 	}
 
 	if ( ! isAccessible(final) && finals.find(final) != finals.end()) {
@@ -141,14 +171,14 @@ bool Nfa::isAccessible(State* state) {
 	return false;
 }
 
-forward_list<State*> Nfa::getStatesWithEpsTransitions() {
-	forward_list<State*> result;
+State * Nfa::getStateWithEpsTransitions() {
+	//TODO Return only the first state
 	for (auto state : states) {
 		if ( ! state->getTransitions(State::EPS).empty()) {
-			result.push_front(state);
+			return state;
 		}
 	}
-	return result;
+	return NULL;
 }
 
 void Nfa::applyCardinality(enum card_t type) {
