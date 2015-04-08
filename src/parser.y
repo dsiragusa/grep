@@ -69,7 +69,7 @@
 		
 		cout << "new start candidate: " << " " << nfa->getInitial()->getId() << endl;
 		
-		leaf = new Tree(nfa->getFinal());
+		leaf = new Tree(*nfa->getFinals().begin());
 		endPoints.push(leaf);
 	}
 			
@@ -200,7 +200,8 @@ int main(int argc, char** argv) {
 	else {
 		Nfa *nfa = new Nfa(State::DOT);
 		nfa->getInitial()->setTransition(State::DOT, nfa->getInitial());
-		nfa->getFinal()->setTransition(State::DOT, nfa->getFinal());
+		State *final = *nfa->getFinals().begin();
+		final->setTransition(State::DOT, final);
 		nfas.push(nfa);
 	}
 	
