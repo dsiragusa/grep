@@ -200,7 +200,8 @@ int main(int argc, char** argv) {
 	else {
 		Nfa *nfa = new Nfa(State::DOT);
 		nfa->getInitial()->setTransition(State::DOT, nfa->getInitial());
-		State *final = *nfa->getFinals().begin();
+
+		State* final = *nfa->getFinals().begin();
 		final->setTransition(State::DOT, final);
 		nfas.push(nfa);
 	}

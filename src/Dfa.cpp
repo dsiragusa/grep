@@ -107,9 +107,11 @@ int Dfa::recEvaluate(string in, State *state) {
 		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
 
-	for (auto& next_state : state->getTransitions(State::DOT))
-		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
-			return ACCEPT;
+	if(state->getTransitions(in.at(0)).empty()) {
+		for (auto& next_state : state->getTransitions(State::DOT))
+			if (recEvaluate(in.substr(1), next_state) == ACCEPT)
+				return ACCEPT;
+		}
 
 	return REJECT;
 }
