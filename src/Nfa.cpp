@@ -124,17 +124,18 @@ void Nfa::unify(const Nfa *toUnify) {
 	newInitial->setTransition(State::EPS, initial);
 	newInitial->setTransition(State::EPS, toUnify->initial);
 
-	final->setTransition(State::EPS, newFinal);
-	toUnify->final->setTransition(State::EPS, newFinal);
+	State *final1 = *finals.begin();
+	State *final2 = *toUnify->finals.begin();
+	final1->setTransition(State::EPS, newFinal);
+	final2->setTransition(State::EPS, newFinal);
 
 	initial = newInitial;
-	final = newFinal;
+	finals.clear();
+	finals.insert(newFinal);
 }
 
 void Nfa::eliminateEps() {
 	State * epsTransState;
-
-	finals.insert(final);
 
 	while ((epsTransState = getStateWithEpsTransitions()) != NULL) {
 		for (auto epsDest : epsTransState->getTransitions(State::EPS)) {
@@ -157,11 +158,12 @@ void Nfa::eliminateEps() {
 			}
 		}
 	}
-
+/*
 	if ( ! isAccessible(final) && finals.find(final) != finals.end()) {
 		finals.erase(final);
 		delete final;
 	}
+*/
 }
 
 unordered_set<State*> Nfa::getFinals() {
@@ -196,6 +198,8 @@ void Nfa::applyCardinality(enum card_t type) {
 	states.insert(newInitial);
 	states.insert(newFinal);
 
+	State *final = *finals.begin();
+
 	final->setTransition(State::EPS, newFinal);
 	newInitial->setTransition(State::EPS, initial);
 
@@ -206,7 +210,8 @@ void Nfa::applyCardinality(enum card_t type) {
 		newInitial->setTransition(State::EPS, newFinal);
 
 	initial = newInitial;
-	final = newFinal;
+	finals.clear();
+	finals.insert(newFinal);
 }
 
 void Nfa::applyCardinality(int min, int max) {
@@ -229,6 +234,7 @@ void Nfa::applyCardinality(int min, int max) {
 			break;
 		}
 		default: {
+			State *final = *finals.begin();
 			forward_list<State *> abortStates;
 			abortStates.push_front(final);
 
@@ -242,7 +248,8 @@ void Nfa::applyCardinality(int min, int max) {
 				(*states.find(abort))->setTransition(State::EPS, newFinal);
 			}
 			states.insert(newFinal);
-			final = newFinal;
+			finals.clear();
+			finals.insert(newFinal);
 		}
 	}
 }
@@ -282,21 +289,9 @@ State * Nfa::getInitial() {
 	return initial;
 }
 
-State * Nfa::getFinal() {
-	return final;
-}
-
 int Nfa::evaluate(string in) {
-	bool emptyFinals = finals.empty();
-
-	if (emptyFinals)
-		finals.insert(final);
-
 	int result = recEvaluate(in, initial);
 	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
-
-	if (emptyFinals)
-		finals.clear();
 
 	return result;
 }
@@ -304,15 +299,10 @@ int Nfa::evaluate(string in) {
 void Nfa::print() {
 	cout << "Initial: " << initial->getId() << ", final: ";
 
-	if (finals.size() > 0) {
-		for (auto& f : finals) {
-			cout << f->getId() << " , ";
-		}
-		cout << "\n";
+	for (auto& f : finals) {
+		cout << f->getId() << " , ";
 	}
-	else {
-		cout << final->getId() << "\n";
-	}
+	cout << "\n";
 
 	for (auto& state : states) {
 		state->print();
@@ -329,12 +319,9 @@ void Nfa::toDot(char const *fileName) {
 	for (auto& state : finals)
 		state->toDot(dotFile, "peripheries=2");
 
-	if (finals.size() == 0) {
-		final->toDot(dotFile, "peripheries=2");
-	}
 
 	for (auto& state : states) {
-		if (state == initial || state == final || finals.find(state) != finals.end())
+		if (state == initial || finals.find(state) != finals.end())
 			continue;
 		state->toDot(dotFile, "");
 	}
