@@ -32,7 +32,7 @@ public:
 	void copyTransitions(const State *);
 	void adaptTransitions(const State *, const map<State *, State *> *);
 	void print();
-	void toDot(FILE *);
+	void toDot(FILE *, char const *);
 	forward_list<int> getSymbols();
 	map<int, unordered_set<State *> > getAllTransitions();
 private:

@@ -77,7 +77,8 @@ void State::print() {
 	cout << "\n";
 }
 
-void State::toDot(FILE *dotFile) {
+void State::toDot(FILE *dotFile, char const * attr) {
+	fprintf(dotFile, "%d [%s];\n", getId(), attr);
 	for (auto& tr : transitions) {
 		int sy = tr.first;
 		for (auto& next : tr.second) {

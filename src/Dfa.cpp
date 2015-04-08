@@ -411,8 +411,16 @@ unordered_set<State *> Dfa::getFinals() {
 void Dfa::toDot(char const *fileName) {
 	FILE *dotFile = fopen(fileName, "w");
 	fprintf(dotFile, "digraph nfa{\n");
+
+	initial->toDot(dotFile, "color=green");
+
+	for (auto& state : finals)
+		state->toDot(dotFile, "peripheries=2");
+
 	for (auto& state : states) {
-		state->toDot(dotFile);
+		if (state == initial || finals.find(state) != finals.end())
+			continue;
+		state->toDot(dotFile, "");
 	}
 	fprintf(dotFile, "}");
 	fclose(dotFile);
