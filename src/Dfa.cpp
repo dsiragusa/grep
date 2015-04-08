@@ -116,6 +116,58 @@ int Dfa::recEvaluate(string in, State *state) {
 	return REJECT;
 }
 
+
+void Dfa::minimize() {
+	Nfa *transposed = new Nfa(this);
+	for (auto state : states)
+		delete state;
+	states.clear();
+	finals.clear();
+	determinize(transposed);
+	delete transposed;
+
+	transposed = new Nfa(this);
+	for (auto state : states)
+		delete state;
+	states.clear();
+	finals.clear();
+	determinize(transposed);
+	delete transposed;
+}
+
+unordered_set<State *> Dfa::getStates() {
+	return states;
+}
+
+State * Dfa::getInitial() {
+	return initial;
+}
+
+unordered_set<State *> Dfa::getFinals() {
+	return finals;
+}
+
+void Dfa::toDot(char const *fileName) {
+	FILE *dotFile = fopen(fileName, "w");
+	fprintf(dotFile, "digraph nfa{\n");
+
+	initial->toDot(dotFile, "color=green");
+
+	for (auto& state : finals)
+		state->toDot(dotFile, "peripheries=2");
+
+	for (auto& state : states) {
+		if (state == initial || finals.find(state) != finals.end())
+			continue;
+		state->toDot(dotFile, "");
+	}
+	fprintf(dotFile, "}");
+	fclose(dotFile);
+}
+
+
+/**			BONUS - HOPCROFT MINIMIZATION 		**/
+
 /*
  * 
  * 
@@ -259,59 +311,54 @@ bool contains(list<unordered_set<State*>> liste, unordered_set<State*> Set) {
  *
  */
 void Dfa::minimise_hopcroft() {
-	if (isMinimal)
-		return;
-	else {
-		unordered_set<State*> notFinal = difference(states, finals);
-		list<unordered_set<State*> > P;
-		list<unordered_set<State*> > __P;
-		list<unordered_set<State*> > W;
-		P.push_front(finals);
-		P.push_front(notFinal);
-		W.push_back(finals);
-		unordered_set<int> symbols = getSymbols();
-		unordered_set<State*> temp;
-		unordered_set<State*> intersection;
-		unordered_set<State*> diff;
+	unordered_set<State*> notFinal = difference(states, finals);
+	list<unordered_set<State*> > P;
+	list<unordered_set<State*> > __P;
+	list<unordered_set<State*> > W;
+	P.push_front(finals);
+	P.push_front(notFinal);
+	W.push_back(finals);
+	unordered_set<int> symbols = getSymbols();
+	unordered_set<State*> temp;
+	unordered_set<State*> intersection;
+	unordered_set<State*> diff;
 
-		unordered_set<State*> setX;
-		while (!W.empty()) {
-			temp = W.front();
-			for (auto& s : symbols) {
-				unordered_set<State*> setX = unordered_set<State*>();
-				for (auto& current : states) {
-					if (canTransitToStateOn(current, s, temp)) {
-						setX.insert(current);
-					}
+	unordered_set<State*> setX;
+	while (!W.empty()) {
+		temp = W.front();
+		for (auto& s : symbols) {
+			unordered_set<State*> setX = unordered_set<State*>();
+			for (auto& current : states) {
+				if (canTransitToStateOn(current, s, temp)) {
+					setX.insert(current);
 				}
-				__P = list<unordered_set<State*> >(P);
-				for (auto& setY : __P) {
-					intersection = Intersection(setX, setY);
-					diff = difference(setY, setX);
-					if (!intersection.empty() && !diff.empty()) {
-						P.remove(setY);
-						P.push_front(intersection);
-						P.push_front(diff);
+			}
+			__P = list<unordered_set<State*> >(P);
+			for (auto& setY : __P) {
+				intersection = Intersection(setX, setY);
+				diff = difference(setY, setX);
+				if (!intersection.empty() && !diff.empty()) {
+					P.remove(setY);
+					P.push_front(intersection);
+					P.push_front(diff);
 
-						if (contains(W, setY)) {
-							W.remove(setY);
+					if (contains(W, setY)) {
+						W.remove(setY);
+						W.push_back(intersection);
+						W.push_back(diff);
+					} else {
+						if (intersection.size() <= diff.size()) {
 							W.push_back(intersection);
-							W.push_back(diff);
 						} else {
-							if (intersection.size() <= diff.size()) {
-								W.push_back(intersection);
-							} else {
-								W.push_back(diff);
-							}
+							W.push_back(diff);
 						}
 					}
 				}
 			}
-			W.pop_front();
 		}
-		initializeStatesAfterMinimisation(P);
+		W.pop_front();
 	}
-	isMinimal = true;
+	initializeStatesAfterMinimisation(P);
 }
 
 void Dfa::initializeStatesAfterMinimisation(
@@ -379,50 +426,3 @@ void Dfa::initializeStatesAfterMinimisation(
 	}
 }
 
-void Dfa::minimize() {
-	Nfa *transposed = new Nfa(this);
-
-	states.clear();
-	finals.clear();
-	determinize(transposed);
-	delete transposed;
-
-	transposed = new Nfa(this);
-
-	states.clear();
-	finals.clear();
-
-	determinize(transposed);
-
-	delete transposed;
-}
-
-unordered_set<State *> Dfa::getStates() {
-	return states;
-}
-
-State * Dfa::getInitial() {
-	return initial;
-}
-
-unordered_set<State *> Dfa::getFinals() {
-	return finals;
-}
-
-void Dfa::toDot(char const *fileName) {
-	FILE *dotFile = fopen(fileName, "w");
-	fprintf(dotFile, "digraph nfa{\n");
-
-	initial->toDot(dotFile, "color=green");
-
-	for (auto& state : finals)
-		state->toDot(dotFile, "peripheries=2");
-
-	for (auto& state : states) {
-		if (state == initial || finals.find(state) != finals.end())
-			continue;
-		state->toDot(dotFile, "");
-	}
-	fprintf(dotFile, "}");
-	fclose(dotFile);
-}

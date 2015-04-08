@@ -21,25 +21,31 @@ class Dfa {
 public:
 	Dfa(Nfa *);
 	virtual ~Dfa();
-	void print();
-	void minimise_hopcroft();
-	int evaluate(string);
-	void toDot(char const *fileName);
+
 	unordered_set<State *> getStates();
-	State * getInitial();
 	unordered_set<State *> getFinals();
+	State * getInitial();
+
 	void minimize();
+
+	int evaluate(string);
+	void print();
+	void toDot(char const *fileName);
+
+	void minimise_hopcroft();
 
 private:
 	unordered_set<State *> states;
-	State *initial;
 	unordered_set<State *> finals;
-	bool isMinimal=false;
+	State *initial;
+
 	void determinize(Nfa *);
 	void recDeterminize(Nfa *, map<set<State *>, State *> *, set<State *>);
-	void initializeStatesAfterMinimisation(list<unordered_set<State*> >);
+
 	unordered_set<int> getSymbols();
 	int recEvaluate(string, State *);
+
+	void initializeStatesAfterMinimisation(list<unordered_set<State*> >);
 };
 
 #endif /* SRC_DFA_H_ */
