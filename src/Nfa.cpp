@@ -10,8 +10,10 @@
 Nfa::Nfa(int symbol) {
 	initial = new State();
 	states.insert(initial);
-	final = new State();
+
+	State *final = new State();
 	states.insert(final);
+	finals.insert(final);
 
 	initial->setTransition(symbol, final);
 }
@@ -19,17 +21,22 @@ Nfa::Nfa(int symbol) {
 Nfa::Nfa(forward_list<int> symbols, bool areMatching) {
 	initial = new State();
 	states.insert(initial);
-	final = new State();
+
+	State *final = new State();
 	states.insert(final);
+	finals.insert(final);
+
+	if ( ! areMatching) {
+		unordered_set<int> toRefuse(symbols.begin(), symbols.end());
+		symbols.clear();
+		for (int i = 0; i < 127; i++) {
+			if (toRefuse.find(i) == toRefuse.end())
+				symbols.push_front(i);
+		}
+	}
 
 	for (auto& symbol : symbols) {
 		initial->setTransition(symbol, final);
-	}
-
-	if ( ! areMatching) {
-		final = new State();
-		states.insert(final);
-		initial->setTransition(State::DOT, final);
 	}
 }
 
@@ -52,7 +59,8 @@ Nfa::Nfa(const Nfa *toCopy) {
 	}
 
 	initial = oldToNewStates[toCopy->initial];
-	final = oldToNewStates[toCopy->final];
+	for (auto final : toCopy->finals)
+		finals.insert(oldToNewStates[final]);
 }
 
 Nfa::Nfa(Dfa *toTranspose) {
@@ -64,7 +72,7 @@ Nfa::Nfa(Dfa *toTranspose) {
 		mapStates.emplace(dfaState, newState);
 	}
 
-	final = mapStates[toTranspose->getInitial()];
+	finals.insert(mapStates[toTranspose->getInitial()]);
 
 	for (auto dfaState : toTranspose->getStates()) {
 		for (auto trans : dfaState->getAllTransitions()) {
@@ -76,18 +84,15 @@ Nfa::Nfa(Dfa *toTranspose) {
 
 	if (toTranspose->getFinals().size() > 1) {
 		initial = new State();
+		states.insert(initial);
 		for (auto dfaFinal : toTranspose->getFinals())
 			initial->setTransition(State::EPS, mapStates[dfaFinal]);
-		states.insert(initial);
 
-		this->toDot("beforeEps.dot");
 		eliminateEps();
-		this->toDot("afterEps.dot");
 	}
 	else {
 		State *dfaFinal = *(toTranspose->getFinals().begin());
 		initial = mapStates[dfaFinal];
-		finals.insert(final);
 	}
 }
 
@@ -99,10 +104,14 @@ Nfa::~Nfa() {
 void Nfa::concatenate(const Nfa *toAppend) {
 	states.insert(toAppend->states.begin(), toAppend->states.end());
 	states.erase(toAppend->initial);
-	(*states.find(final))->copyTransitions(toAppend->initial);
+
+	State *final = *finals.begin();
+	final->copyTransitions(toAppend->initial);
+
 	delete toAppend->initial;
 
-	final = toAppend->final;
+	finals.clear();
+	finals.insert(toAppend->finals.begin(), toAppend->finals.end());
 }
 
 void Nfa::unify(const Nfa *toUnify) {
@@ -250,22 +259,16 @@ int Nfa::recEvaluate(string in, State *state) {
 		return REJECT;
 	}
 
-	bool symbolHasTrans = false;
-	for (auto& next_state : state->getTransitions(in.at(0))) {
-		symbolHasTrans = true;
+	for (auto& next_state : state->getTransitions(in.at(0)))
 		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
 			return ACCEPT;
-	}
-
-	for (auto& eps_state : state->getTransitions(State::EPS))
-		if (recEvaluate(in, eps_state) == ACCEPT)
-			return ACCEPT;
-
-	if (symbolHasTrans)
-		return REJECT;
 
 	for (auto& next_state : state->getTransitions(State::DOT))
 		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
+			return ACCEPT;
+
+	for (auto& eps_state : state->getTransitions(State::EPS))
+		if (recEvaluate(in, eps_state) == ACCEPT)
 			return ACCEPT;
 
 	return REJECT;

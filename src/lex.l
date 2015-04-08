@@ -34,7 +34,7 @@ ORD [^[\()|$^.{*+?]
 <BRA_FIRST>\[:	{BEGIN BRA_COL; return Open_colon;}
 <BRA_FIRST>.	{BEGIN BRA; yylval.c = yytext[0]; return COLL_ELEM;}
 
-<BRA_COL>(alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print|punct|space|upper|word|xdigit)	{yylval.s = (char *) malloc(sizeof(char) * (yyleng+1)); strncpy(yylval.s, yytext, yyleng); return class_name;}
+<BRA_COL>(alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print|punct|space|upper|word|xdigit)	{yylval.s = (char *) malloc(sizeof(char) * (yyleng+1)); strncpy(yylval.s, yytext, yyleng); yylval.s[yyleng] = '\0'; return class_name;}
 <BRA_COL>:]		{BEGIN BRA; return Colon_close;}
 
 <BRA>-/\]		{yylval.c = '-'; return COLL_ELEM;}

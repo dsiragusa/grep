@@ -28,7 +28,7 @@ enum card_t {KLEENE_STAR, OPTION, PLUS};
 class Nfa {
 	private:
 	unordered_set<State *> states;
-	State *initial, *final;
+	State *initial;
 	unordered_set<State*> finals;
 
 	int recEvaluate(string, State *);

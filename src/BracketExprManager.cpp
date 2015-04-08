@@ -142,7 +142,6 @@ void BracketExprManager::applyClass(char *clazz) {
 	string cl_name = string(clazz);
 	void(BracketExprManager::*apply)() = mapClassToApply[cl_name];
 	(this->*apply)();
-	free(clazz);
 }
 
 forward_list<int> BracketExprManager::getBracket() {

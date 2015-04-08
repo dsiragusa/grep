@@ -178,7 +178,7 @@ collating_symbol : Open_dot COLL_ELEM Dot_close
 equivalence_class : Open_equal COLL_ELEM Equal_close
                ;
 */
-character_class : Open_colon class_name Colon_close		{cout << "CLASS: " << $2 << " "; bracket.applyClass($2);}
+character_class : Open_colon class_name Colon_close		{cout << "CLASS: " << $2 << " "; bracket.applyClass($2); free($2);}
                 ;
 
 %%
@@ -213,10 +213,10 @@ int main(int argc, char** argv) {
 	
 	Dfa* dfa = new Dfa(noEps);
 	dfa->toDot("dot/dfa.dot");
-	/*
 	dfa->minimize();
 	dfa->toDot("dot/brzo.dot");
-	
+
+/*	
 	dfa = new Dfa(noEps);
 	dfa->minimise_hopcroft();
 	dfa->toDot("dot/hopcroft.dot");
