@@ -49,21 +49,3 @@ private:
 };
 
 #endif /* SRC_DFA_H_ */
-
-
-/*
- *  I = une liste vide etats initiaux
- *	finaux.ajouter(initial);
- *  pour chaque etat
- *  	pour chaque c dqns symbol
- *  		etat_accesible = getTrabsition(c);
- *  		inverser transtion entre etat_accessible et etat
- * 		si etat est dans final
- * 			ajouter etat dans I
- *
- * 	si |I| > 1 alors
- * 		creer un etat bidon
- * 		ajouter les eps _trans vers tous etats dans I
- *
- *
- */
