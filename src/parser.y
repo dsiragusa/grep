@@ -23,14 +23,12 @@
 
 	void concatenate() {
 		if (isLineEnd) {
-			cout << "LINEEND set skip on start candidate: "; endPoints.top()->print();
 			isLineEnd = false;
 			endPoints.top()->setSkip();
 		}		
 		else {
 			Nfa *a = nfas.top();	
 			nfas.pop();
-			cout << "removing start candidate: "; startPoints.top()->print();
 			nfas.top()->concatenate(a);
 						
 			delete startPoints.top();
@@ -67,20 +65,10 @@
 		Tree *leaf = new Tree(nfa->getInitial());
 		startPoints.push(leaf);
 		
-		cout << "new start candidate: " << " " << nfa->getInitial()->getId() << endl;
-		
 		leaf = new Tree(*nfa->getFinals().begin());
 		endPoints.push(leaf);
 	}
-			
-	void printBracket() {
-		cout << "\n Bracket:";
-		for (char el : bracket.getBracket()) {
-			cout << " " << el;
-		}
-		cout << endl;
-	}
-	
+				
 	void parseFile(istream& input, Nfa *thompson, Nfa *noEps, Dfa *dfa, bool multipleFiles, char const *fileName) {
 		string line;
 		while (getline(input, line)) {
@@ -126,7 +114,7 @@ extended_reg_exp   :                      ERE_branch
                    | extended_reg_exp '|' ERE_branch	{cout << "{OR}"; unify();}
                    ;
 ERE_branch         :            ERE_expression
-                   | '^'		ERE_expression		{cout << "{ATSTART}"; cout << "LINESTART set skip on start candidate: "; startPoints.top()->print(); startPoints.top()->setSkip();}
+                   | '^'		ERE_expression		{cout << "{ATSTART}"; startPoints.top()->setSkip();}
                    | ERE_branch ERE_expression		{cout << "CAT"; concatenate();}
                    ;
 ERE_expression     : one_char_or_coll_elem_ERE	{cout << "PUSH";}
@@ -146,8 +134,8 @@ ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->applyCardinality(KLEENE_ST
                    | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}"; nfas.top()->applyCardinality($2, UNBOUNDED);}
                    | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}"; nfas.top()->applyCardinality($2, $4);}
                    ;
-bracket_expression : '[' matching_list    ']'	{cout << "matching"; printBracket(); pushNfa(new Nfa(bracket.getBracket(), true));}
-                   | '[' nonmatching_list ']'	{cout << "non_matching"; printBracket(); pushNfa(new Nfa(bracket.getBracket(), false));}
+bracket_expression : '[' matching_list    ']'	{cout << "matching"; pushNfa(new Nfa(bracket.getBracket(), true));}
+                   | '[' nonmatching_list ']'	{cout << "non_matching"; pushNfa(new Nfa(bracket.getBracket(), false));}
                    ;
 matching_list  : bracket_list
                ;

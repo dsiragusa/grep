@@ -100,20 +100,18 @@ int Dfa::evaluate(string in) {
 }
 
 int Dfa::recEvaluate(string in, State *state) {
-	if (in.length() == 0)
-		return (finals.find(state) != finals.end()) ? ACCEPT : REJECT;
-
-	for (auto& next_state : state->getTransitions(in.at(0)))
-		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
-			return ACCEPT;
-
-	if(state->getTransitions(in.at(0)).empty()) {
-		for (auto& next_state : state->getTransitions(State::DOT))
-			if (recEvaluate(in.substr(1), next_state) == ACCEPT)
-				return ACCEPT;
+	State *current = initial;
+	for (char c : in) {
+		auto trans = current->getTransitions(c);
+		if (trans.size() == 0) {
+			trans = current->getTransitions(State::DOT);
+			if (trans.size() == 0)
+				return REJECT;
 		}
+		current = *trans.begin();
+	}
 
-	return REJECT;
+	return (finals.find(current) != finals.end()) ? ACCEPT : REJECT;
 }
 
 
