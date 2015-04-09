@@ -43,7 +43,6 @@ private:
 	void recDeterminize(Nfa *, map<set<State *>, State *> *, set<State *>);
 
 	unordered_set<int> getSymbols();
-	int recEvaluate(string, State *);
 
 	void initializeStatesAfterMinimisation(list<unordered_set<State*> >);
 };

@@ -26,22 +26,12 @@ void Tree::setSkip() {
 }
 
 void Tree::applyRules() {
-	if (state != NULL)
-		cout << " for state " << state->getId();
-	else
-		cout << " empty node";
-
-	if (skip) {
-		cout << " skip detected" << endl;
+	if (skip)
 		return;
-	}
 
-	if (state != NULL) {
-		cout << " applying DOT" << endl;
+	if (state != NULL)
 		state->setTransition(State::DOT, state);
-	}
 	else {
-		cout << endl;
 		left->applyRules();
 		right->applyRules();
 	}

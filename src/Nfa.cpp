@@ -158,12 +158,6 @@ void Nfa::eliminateEps() {
 			}
 		}
 	}
-/*
-	if ( ! isAccessible(final) && finals.find(final) != finals.end()) {
-		finals.erase(final);
-		delete final;
-	}
-*/
 }
 
 unordered_set<State*> Nfa::getFinals() {

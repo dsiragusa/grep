@@ -72,9 +72,11 @@
 	void parseFile(istream& input, Dfa *dfa, bool multipleFiles, char const *fileName) {
 		string line;
 		while (getline(input, line)) {
-			if (multipleFiles)
-				cout << fileName << ":";
-			dfa->evaluate(line);
+			if (dfa->evaluate(line)) {
+				if (multipleFiles)
+					cout << fileName << ":";
+				cout << line << endl;
+			}
 		}	
 	}
 	
@@ -106,31 +108,31 @@
 
 
 extended_reg_exp   :                      ERE_branch
-                   | extended_reg_exp '|' ERE_branch	{cout << "{OR}"; unify();}
+                   | extended_reg_exp '|' ERE_branch	{unify();}
                    ;
 ERE_branch         :            ERE_expression
-                   | '^'		ERE_expression		{cout << "{ATSTART}"; startPoints.top()->setSkip();}
-                   | ERE_branch ERE_expression		{cout << "CAT"; concatenate();}
+                   | '^'		ERE_expression		{startPoints.top()->setSkip();}
+                   | ERE_branch ERE_expression		{concatenate();}
                    ;
-ERE_expression     : one_char_or_coll_elem_ERE	{cout << "PUSH";}
-                   | '$'					{cout << "{ATEND}"; isLineEnd = true;}
-                   | '(' extended_reg_exp ')'	{cout << "PAREN";}
+ERE_expression     : one_char_or_coll_elem_ERE	
+                   | '$'					{isLineEnd = true;}
+                   | '(' extended_reg_exp ')'	
                    | ERE_expression ERE_dupl_symbol
                    ;
-one_char_or_coll_elem_ERE  : ORD_CHAR	{cout << "[" <<$1<<"]"; pushNfa(new Nfa($1));}
-                   | QUOTED_CHAR		{cout << "["<<$1<<"]"; pushNfa(new Nfa($1));}
-                   | '.'				{cout << "DOT"; pushNfa(new Nfa(State::DOT));}
+one_char_or_coll_elem_ERE  : ORD_CHAR	{pushNfa(new Nfa($1));}
+                   | QUOTED_CHAR		{pushNfa(new Nfa($1));}
+                   | '.'				{pushNfa(new Nfa(State::DOT));}
                    | bracket_expression {bracket.clear();}
                    ;
-ERE_dupl_symbol    : '*'	{cout << "STAR"; nfas.top()->applyCardinality(KLEENE_STAR);}
-                   | '+'	{cout << "PLUS"; nfas.top()->applyCardinality(PLUS);}
-                   | '?'	{cout << "OPT"; nfas.top()->applyCardinality(OPTION);}
-                   | '{' DUP_COUNT               '}'	{cout << "{"<<$2<<"}"; nfas.top()->applyCardinality($2, SIMPLE_COUNT);}
-                   | '{' DUP_COUNT ','           '}'	{cout << "{"<<$2<<",}"; nfas.top()->applyCardinality($2, UNBOUNDED);}
-                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{cout << "{"<<$2<<","<<$4<<"}"; nfas.top()->applyCardinality($2, $4);}
+ERE_dupl_symbol    : '*'	{nfas.top()->applyCardinality(KLEENE_STAR);}
+                   | '+'	{nfas.top()->applyCardinality(PLUS);}
+                   | '?'	{nfas.top()->applyCardinality(OPTION);}
+                   | '{' DUP_COUNT               '}'	{nfas.top()->applyCardinality($2, SIMPLE_COUNT);}
+                   | '{' DUP_COUNT ','           '}'	{nfas.top()->applyCardinality($2, UNBOUNDED);}
+                   | '{' DUP_COUNT ',' DUP_COUNT '}'	{nfas.top()->applyCardinality($2, $4);}
                    ;
-bracket_expression : '[' matching_list    ']'	{cout << "matching"; pushNfa(new Nfa(bracket.getBracket(), true));}
-                   | '[' nonmatching_list ']'	{cout << "non_matching"; pushNfa(new Nfa(bracket.getBracket(), false));}
+bracket_expression : '[' matching_list    ']'	{pushNfa(new Nfa(bracket.getBracket(), true));}
+                   | '[' nonmatching_list ']'	{pushNfa(new Nfa(bracket.getBracket(), false));}
                    ;
 matching_list  : bracket_list
                ;
@@ -146,12 +148,12 @@ single_expression : end_range
                   | character_class
                /*| equivalence_class*/
                   ;
-range_expression : start_range end_range {cout << "{ENDRANGE}"; bracket.expandRange();}
-                 | start_range '-'	{cout << "[-]"; bracket.setCollElem('-'); cout << "{ENDRANGE}"; bracket.expandRange();}
+range_expression : start_range end_range {bracket.expandRange();}
+                 | start_range '-'	{bracket.setCollElem('-'); bracket.expandRange();}
                  ;
-start_range    : end_range '-'		{cout << "{RANGE}";}
+start_range    : end_range '-'		
                ;
-end_range      : COLL_ELEM	{cout << "[" << $1 << "]"; bracket.setCollElem($1);}
+end_range      : COLL_ELEM	{bracket.setCollElem($1);}
                /*| collating_symbol*/
                ;
 /*
@@ -161,7 +163,7 @@ collating_symbol : Open_dot COLL_ELEM Dot_close
 equivalence_class : Open_equal COLL_ELEM Equal_close
                ;
 */
-character_class : Open_colon class_name Colon_close		{cout << "CLASS: " << $2 << " "; bracket.applyClass($2); free($2);}
+character_class : Open_colon class_name Colon_close		{bracket.applyClass($2); free($2);}
                 ;
 
 %%

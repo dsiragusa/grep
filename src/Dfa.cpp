@@ -94,26 +94,19 @@ unordered_set<int> Dfa::getSymbols() {
 }
 
 int Dfa::evaluate(string in) {
-	int result = recEvaluate(in, initial);
-	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
-	return result;
-}
-
-int Dfa::recEvaluate(string in, State *state) {
 	State *current = initial;
 	for (char c : in) {
 		auto trans = current->getTransitions(c);
 		if (trans.size() == 0) {
 			trans = current->getTransitions(State::DOT);
 			if (trans.size() == 0)
-				return REJECT;
+				return false;
 		}
 		current = *trans.begin();
 	}
 
-	return (finals.find(current) != finals.end()) ? ACCEPT : REJECT;
+	return (finals.find(current) != finals.end());
 }
-
 
 void Dfa::minimize() {
 	Nfa *transposed = new Nfa(this);
