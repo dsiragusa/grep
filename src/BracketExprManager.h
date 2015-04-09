@@ -1,10 +1,3 @@
-/*
- * BracketClassApplier.h
- *
- *  Created on: 06/apr/2015
- *      Author: daniele
- */
-
 #ifndef SRC_BRACKETEXPRMANAGER_H_
 #define SRC_BRACKETEXPRMANAGER_H_
 

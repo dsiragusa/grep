@@ -1,10 +1,3 @@
-/*
- * Dfa.cpp
- *
- *  Created on: 31/mar/2015
- *      Author: daniele
- */
-
 #include "Dfa.h"
 #include "Nfa.h"
 

@@ -1,10 +1,3 @@
-/*
- * State.cpp
- *
- *  Created on: 28/mar/2015
- *      Author: Daniele
- */
-
 #include "State.h"
 
 UniqueIdGenerator State::idGen = UniqueIdGenerator(0);

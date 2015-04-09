@@ -1,10 +1,3 @@
-/*
- * UniqueIdGenerator.cpp
- *
- *  Created on: 28/mar/2015
- *      Author: daniele
- */
-
 #include "UniqueIdGenerator.h"
 
 UniqueIdGenerator::UniqueIdGenerator(int baseId) {

@@ -1,10 +1,3 @@
-/*
- * Dfa.h
- *
- *  Created on: 31/mar/2015
- *      Author: Daniele
- */
-
 #ifndef SRC_DFA_H_
 #define SRC_DFA_H_
 

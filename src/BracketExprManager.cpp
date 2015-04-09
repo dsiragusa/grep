@@ -1,10 +1,3 @@
-/*
- * BracketClassApplier.cpp
- *
- *  Created on: 06/apr/2015
- *      Author: daniele
- */
-
 #include "BracketExprManager.h"
 
 BracketExprManager::BracketExprManager() {

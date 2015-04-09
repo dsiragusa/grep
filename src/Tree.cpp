@@ -1,10 +1,3 @@
-/*
- * Tree.cpp
- *
- *  Created on: 04/apr/2015
- *      Author: daniele
- */
-
 #include "Tree.h"
 
 Tree::Tree(State *final) {

@@ -1,10 +1,3 @@
-/*
- * Tree.h
- *
- *  Created on: 04/apr/2015
- *      Author: daniele
- */
-
 #ifndef SRC_TREE_H_
 #define SRC_TREE_H_
 

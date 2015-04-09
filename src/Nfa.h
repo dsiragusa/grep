@@ -1,10 +1,3 @@
-/*
- * Nfa.h
- *
- *  Created on: 28/mar/2015
- *      Author: Daniele
- */
-
 #ifndef SRC_NFA_H_
 #define SRC_NFA_H_
 

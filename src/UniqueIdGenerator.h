@@ -1,10 +1,3 @@
-/*
- * UniqueIdGenerator.h
- *
- *  Created on: 28/mar/2015
- *      Author: daniele
- */
-
 #ifndef SRC_UNIQUEIDGENERATOR_H_
 #define SRC_UNIQUEIDGENERATOR_H_
 

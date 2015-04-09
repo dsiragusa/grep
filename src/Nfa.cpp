@@ -1,10 +1,3 @@
-/*
- * Nfa.cpp
- *
- *  Created on: 28/mar/2015
- *      Author: Daniele
- */
-
 #include "Nfa.h"
 
 Nfa::Nfa(int symbol) {
