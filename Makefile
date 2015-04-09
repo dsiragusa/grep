@@ -18,4 +18,8 @@ obj/%.o: src/%.cpp
 	$(CC) -c $< -o $@ $(C11FLAG)
 
 clean:
-	rm -rf bin/* obj/*
+	rm -rf obj/* egrep
+
+dist:
+	rm -rf obj/* egrep egrep.dSYM dot/*
+	tar -cvzf egrep_CHITIMBO_SIRAGUSA.tgz *
