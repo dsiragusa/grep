@@ -31,8 +31,6 @@ class Nfa {
 	State *initial;
 	unordered_set<State*> finals;
 
-	int recEvaluate(string, State *);
-
 	public:
 	Nfa(int);
 	Nfa(const Nfa *);
@@ -56,7 +54,6 @@ class Nfa {
 
 	void print();
 	void toDot(char const *);
-	int evaluate(string);
 };
 
 #endif /* SRC_NFA_H_ */

@@ -69,16 +69,11 @@
 		endPoints.push(leaf);
 	}
 				
-	void parseFile(istream& input, Nfa *thompson, Nfa *noEps, Dfa *dfa, bool multipleFiles, char const *fileName) {
+	void parseFile(istream& input, Dfa *dfa, bool multipleFiles, char const *fileName) {
 		string line;
 		while (getline(input, line)) {
 			if (multipleFiles)
 				cout << fileName << ":";
-			cout << "Thompson NFA:" << endl;
-			thompson->evaluate(line);
-			cout << "No-EPS NFA:" << endl;
-			noEps->evaluate(line);
-			cout << "DFA:" << endl;
 			dfa->evaluate(line);
 		}	
 	}
@@ -198,29 +193,29 @@ int main(int argc, char** argv) {
 	thompson->toDot("dot/thompson.dot");
 	
 	Nfa *noEps = new Nfa(thompson);
+	delete thompson;
 	noEps->eliminateEps();
 	noEps->toDot("dot/noEps.dot");
 	
 	Dfa* dfa = new Dfa(noEps);
+	delete noEps;
 	dfa->toDot("dot/dfa.dot");
 	dfa->minimize();
 	dfa->toDot("dot/brzo.dot");
 
 	if (argc == 2)
-		parseFile(cin, thompson, noEps, dfa, false, "");
+		parseFile(cin, dfa, false, "");
 	else {
 		int nextFile = 2;
 		bool multipleFiles = (argc - nextFile > 1);
 		while (nextFile < argc) {
 			ifstream fin(argv[nextFile]);
-			parseFile(fin, thompson, noEps, dfa, multipleFiles, argv[nextFile]);
+			parseFile(fin, dfa, multipleFiles, argv[nextFile]);
 			fin.close();
 			++nextFile;
 		}
 	}
 	
-	delete thompson;
-	delete noEps;
 	delete dfa;
 }
 

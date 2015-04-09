@@ -254,46 +254,12 @@ void Nfa::applyCardinality(int min, int max) {
 	}
 }
 
-int Nfa::recEvaluate(string in, State *state) {
-	if (in.length() == 0) {
-		if (finals.find(state) != finals.end())
-			return ACCEPT;
-
-		for (auto& eps_state : state->getTransitions(State::EPS))
-			if (recEvaluate(in, eps_state) == ACCEPT)
-				return ACCEPT;
-
-		return REJECT;
-	}
-
-	for (auto& next_state : state->getTransitions(in.at(0)))
-		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
-			return ACCEPT;
-
-	for (auto& next_state : state->getTransitions(State::DOT))
-		if (recEvaluate(in.substr(1), next_state) == ACCEPT)
-			return ACCEPT;
-
-	for (auto& eps_state : state->getTransitions(State::EPS))
-		if (recEvaluate(in, eps_state) == ACCEPT)
-			return ACCEPT;
-
-	return REJECT;
-}
-
 unordered_set<State *> Nfa::getStates() {
 	return states;
 }
 
 State * Nfa::getInitial() {
 	return initial;
-}
-
-int Nfa::evaluate(string in) {
-	int result = recEvaluate(in, initial);
-	cout << "\n" << in << ": " << ((result == ACCEPT) ? "YES" : "NO") << "\n\n";
-
-	return result;
 }
 
 void Nfa::print() {

@@ -45,7 +45,7 @@ ORD [^[\()|$^.{*+?]
 <BRA>.			{yylval.c = yytext[0]; return COLL_ELEM;}
 
 {ORD}			{yylval.c = yytext[0]; return ORD_CHAR;}
-{QUOTED}		{yylval.c = yytext[0]; return QUOTED_CHAR;}
+{QUOTED}		{yylval.c = yytext[1]; return QUOTED_CHAR;}
 .				{return yytext[0];}
 %%
 
